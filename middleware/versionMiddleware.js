@@ -9,4 +9,4 @@ versionMiddleware = function(version) {
     return next("route"); // skip to the next route
   };
 };
-export default versionMiddleware
+module.exports = versionMiddleware;
