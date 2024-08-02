@@ -10,7 +10,8 @@ const hpp = require("hpp");
 const cors = require("cors");
 
 // Load env variables
-dotenv.config({ path: "./config/config.env" });
+const envPath = "./.env"
+dotenv.config({ path: envPath });
 
 connectDB();
 
