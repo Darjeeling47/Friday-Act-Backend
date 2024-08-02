@@ -1,0 +1,37 @@
+services:
+  postgres:
+    image: postgres:16
+    volumes:
+      - fridayAct1:/var/lib/postgresql/data
+      #- ./postgres/postgresql.conf:/etc/postgresql/postgresql.conf
+    environment:
+      POSTGRES_DB: admin
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "12566:5432"
+    networks:
+      - pg-network
+
+  pg_admin:
+    image: dpage/pgadmin4
+    environment:
+      - name=admin
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=admin@admin.com
+    ports:
+      - "80:80"
+    networks:
+      - pg-network
+    depends_on:
+      - postgres
+
+volumes:
+  fridayAct1:
+
+networks:
+  pg-network:
+    driver: bridge
+
+# TO RUN:
+# run "docker compose up" on the directory that this file is in
