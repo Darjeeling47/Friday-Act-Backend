@@ -16,7 +16,7 @@ semestersRoute.post('/', versionMiddleware(1), createSemester.v1);
 semestersRoute.get('/', versionMiddleware(1), getSemesters.v1);
 
 // get one semester
-semestersRoute.get('/', versionMiddleware(1), getSemester.v1);
+semestersRoute.get('/:semesterId', versionMiddleware(1), getSemester.v1);
 
 // update a semester
 semestersRoute.put('/', versionMiddleware(1), updateSemester.v1);

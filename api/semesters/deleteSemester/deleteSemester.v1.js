@@ -1,3 +1,3 @@
-module.exports = (req, res, next) => {
-  return
+module.exports = (response) => {
+  return response
 }

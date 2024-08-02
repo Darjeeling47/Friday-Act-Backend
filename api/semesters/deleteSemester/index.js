@@ -1,5 +1,1 @@
-const v1 = require('./deleteSemester.v1');
-
-module.exports = {
-  v1
-}
+module.exports = require('./deleteSemester.handler');
