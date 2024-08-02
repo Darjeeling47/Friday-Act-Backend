@@ -1,3 +1,3 @@
-const semestersRoute = require("./semesters.routes");
+const semesters = require("./semesters.routes");
 
-module.exports = semestersRoute;
+module.exports = semesters;
