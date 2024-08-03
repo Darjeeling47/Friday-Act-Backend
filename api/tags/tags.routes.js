@@ -10,19 +10,19 @@ const updateTag = require('./updateTag');
 const deleteTag = require('./deleteTag');
 
 // create a semester
-semestersRoute.post('/', versionMiddleware(1), createSemester.v1);
+tagsRoute.post('/', versionMiddleware(1), createTag.v1);
 
 // get many semester
-semestersRoute.get('/', versionMiddleware(1), getSemesters.v1);
+tagsRoute.get('/', versionMiddleware(1), getTags.v1);
 
 // get one semester
-semestersRoute.get('/:semesterId', versionMiddleware(1), getSemester.v1);
+tagsRoute.get('/:tagId', versionMiddleware(1), getTag.v1);
 
 // update a semester
-semestersRoute.put('/', versionMiddleware(1), updateSemester.v1);
+tagsRoute.put('/', versionMiddleware(1), updateTag.v1);
 
 // delete a semester
-semestersRoute.delete('/', versionMiddleware(1), deleteSemester.v1);
+tagsRoute.delete('/', versionMiddleware(1), deleteTag.v1);
 
 // export
-module.exports = semestersRoute;
+module.exports = tagsRoute;

@@ -1,3 +1,3 @@
-const tag = require('./tag');
+const tags = require("./tags.routes")
 
-module.exports = tag;
+module.exports = tags;
