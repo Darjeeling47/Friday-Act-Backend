@@ -1,1 +1,1 @@
-module.exports = require('./getSemester.handler');
+module.exports = require('./getSemesters.handler');
