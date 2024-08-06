@@ -1,3 +1,5 @@
+const knex = require('knex')(require('../../../knexfile').development);
+
 module.exports =  async (req, res, next) => {
   const { year, semester, startDate, endDate } = req.body;
 
@@ -24,7 +26,7 @@ module.exports =  async (req, res, next) => {
 
   try {
     // Check if the semester already exists
-    const existingSemester = await knex('semesters')
+    const existingSemester = await knex('SEMESTERS')
       .where({ year, semester })
       .first();
 
@@ -33,8 +35,8 @@ module.exports =  async (req, res, next) => {
     }
 
     // Insert new semester
-    const [newSemester] = await knex('semesters')
-      .insert({ year, semester, startDate, endDate })
+    const [newSemester] = await knex('SEMESTERS')
+      .insert({ year, semester, start_date: startDate, end_date: endDate })
       .returning('*');
 
     return res.status(201).json({
@@ -42,6 +44,6 @@ module.exports =  async (req, res, next) => {
       semester: newSemester
     });
   } catch (error) {
-    return res.status(500).json({ message: "An error occurred.", error });
+    return res.status(500).json({ message: "An error occurred.", error: error.message });
   }
 }

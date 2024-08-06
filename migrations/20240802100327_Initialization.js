@@ -6,7 +6,7 @@ exports.up = function(knex) {
   return knex.schema
     .createTable('SEMESTERS', function(table) {
       table.increments('id').primary();
-      table.date('year');
+      table.smallint('year');
       table.smallint('semester');
       table.date('start_date');
       table.date('end_date');

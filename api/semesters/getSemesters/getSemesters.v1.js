@@ -1,3 +1,5 @@
+const knex = require('knex')(require('../../../knexfile').development);
+
 module.exports = async (req, res, next) => {
   let { page = 1, limit = 25, search = '' } = req.query;
 
@@ -15,14 +17,27 @@ module.exports = async (req, res, next) => {
 
   try {
     // create query
-    const query = knex('semesters')
-      .where('year', 'like', `%${search}%`)
-      .orWhere('semester', 'like', `%${search}%`);
+    const query = knex('SEMESTERS')
+    .select('id', 'year', 'semester', 'start_date', 'end_date', 'created_at', 'updated_at')
+    .groupBy('id', 'year', 'semester', 'start_date', 'end_date', 'created_at', 'updated_at')
+    .modify((builder) => {
+      if (search) {
+        builder.where(knex.raw('CAST(year AS TEXT)'), 'LIKE', `%${search}%`)
+              .orWhere(knex.raw('CAST(semester AS TEXT)'), 'LIKE', `%${search}%`);
+      }
+    })
+    .limit(limit > 100 ? 100 : limit)
+    .offset((page - 1) * limit);
 
-    // count total records
-    const totalRecords = await query.clone().count({ count: '*' }).first();
+    // Count total records
+    const countResult = await query.clone().count({ count: '*' }).first();
 
-    const total = parseInt(totalRecords.count);
+    // Check if countResult exists and has a count property
+    const totalRecords = countResult ? parseInt(countResult.count, 10) : 0;
+
+    console.log('Total Records:', totalRecords);
+
+    const total = totalRecords;
     const totalPages = Math.ceil(total / limit);
 
     if (page > totalPages && totalPages > 0) {
@@ -52,6 +67,7 @@ module.exports = async (req, res, next) => {
       semesters: semesters
     });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({ message: "An error occurred.", error: error.message });
   }
 };
