@@ -1,5 +1,7 @@
+const knex = require('knex')(require('../../../knexfile').development);
+
 module.exports = async (req, res, next) => {
-  const { id } = req.params.id;
+  const id = req.params.semesterId;
   const { year, semester, startDate, endDate } = req.body;
 
   // Validate required fields
@@ -24,7 +26,7 @@ module.exports = async (req, res, next) => {
 
   try {
     // check if this semester exists
-    const existingSemester = await knex('semesters').where({ id }).first();
+    const existingSemester = await knex('SEMESTERS').where({ id }).first();
 
     if (!existingSemester) {
       return res.status(404).json({ message: "This semester is not found." });
@@ -32,7 +34,7 @@ module.exports = async (req, res, next) => {
 
     // check if the semester already exists
     if (year && semester) {
-      const duplicateSemester = await knex('semesters')
+      const duplicateSemester = await knex('SEMESTERS')
         .where({ year, semester })
         .andWhere('id', '!=', id)
         .first();
@@ -43,14 +45,14 @@ module.exports = async (req, res, next) => {
     }
 
     // update the semester
-    const updatedSemester = await knex('semesters')
+    const updatedSemester = await knex('SEMESTERS')
       .where({ id })
       .update({
         year: year || existingSemester.year,
         semester: semester || existingSemester.semester,
-        startDate: startDate || existingSemester.startDate,
-        endDate: endDate || existingSemester.endDate,
-        updatedAt: knex.fn.now()
+        start_date: startDate || existingSemester.startDate,
+        end_date: endDate || existingSemester.endDate,
+        updated_at: knex.fn.now()
       })
       .returning('*');
 

@@ -1,9 +1,12 @@
+const knex = require('knex')(require('../../../knexfile').development);
+
 module.exports = async (req, res, next) => {
-  const { id } = req.params.id;
+  const id = req.params.semesterId;
+  console.log('id:', id);
 
   try {
     // check if the semester already exists
-    const semester = await knex('semesters').where({ id }).first();
+    const semester = await knex('SEMESTERS').where({ id }).first();
 
     if (!semester) {
       return res.status(404).json({ 
