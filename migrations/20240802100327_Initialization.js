@@ -17,6 +17,7 @@ exports.up = function(knex) {
       table.increments('id').primary();
       table.string('name', 50).unique();
       table.string('color', 6);
+      table.timestamp('updated_at');
     })
     .createTable('ACTIVITIES', function(table) {
       table.increments('id').primary();

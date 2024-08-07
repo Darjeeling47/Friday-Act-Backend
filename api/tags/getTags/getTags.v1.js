@@ -1,3 +1,5 @@
+const knex = require('knex')(require('../../../knexfile').development);
+
 module.exports = async (req, res) => {
     const { search = '', page = 1, limit = 25 } = req.query;
 
@@ -7,7 +9,7 @@ module.exports = async (req, res) => {
 
   try {
     // create query
-    let query = knex('tags');
+    let query = knex('TAGS');
 
     if (search) {
       query = query.where('name', 'like', `%${search}%`);

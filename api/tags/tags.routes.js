@@ -19,10 +19,10 @@ tagsRoute.get('/', versionMiddleware(1), getTags.v1);
 tagsRoute.get('/:tagId', versionMiddleware(1), getTag.v1);
 
 // update a semester
-tagsRoute.put('/', versionMiddleware(1), updateTag.v1);
+tagsRoute.put('/:tagId', versionMiddleware(1), updateTag.v1);
 
 // delete a semester
-tagsRoute.delete('/', versionMiddleware(1), deleteTag.v1);
+tagsRoute.delete('/:tagId', versionMiddleware(1), deleteTag.v1);
 
 // export
 module.exports = tagsRoute;

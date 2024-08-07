@@ -1,5 +1,7 @@
+const knex = require('knex')(require('../../../knexfile').development);
+
 module.exports = async (req, res) => {
-    const { id } = req.params;
+    const id = req.params.tagId;
     const { name, color } = req.body;
   
     // check if the length of name or color is too long
@@ -11,7 +13,7 @@ module.exports = async (req, res) => {
     }
   
     // check if the color is in HEX format
-    const hexRegex = /^[0-9a-f]{6}$/;
+    const hexRegex = /^[0-9A-F]{6}$/;
     if (color && !hexRegex.test(color)) {
       return res.status(400).json({
         success: false,
@@ -21,7 +23,7 @@ module.exports = async (req, res) => {
   
     try {
       // check if this tag exists
-      const existingTag = await knex('tags').where({ id }).first();
+      const existingTag = await knex('TAGS').where({ id }).first();
   
       if (!existingTag) {
         return res.status(404).json({ message: "This tag is not found." });
@@ -29,17 +31,17 @@ module.exports = async (req, res) => {
   
       // check if the tag already exists
       if (name) {
-        const duplicateTag = await knex('tags').where({ name }).andWhereNot({ id }).first();
+        const duplicateTag = await knex('TAGS').where({ name }).andWhereNot({ id }).first();
         if (duplicateTag) {
           return res.status(409).json({ message: "This tag is already existed." });
         }
       }
   
       // update the tag
-      await knex('tags').where({ id }).update({ name, color, updated_at: knex.fn.now() });
+      await knex('TAGS').where({ id }).update({ name, color, updated_at: knex.fn.now() });
   
       // query the updated tag
-      const updatedTag = await knex('tags').where({ id }).first();
+      const updatedTag = await knex('TAGS').where({ id }).first();
   
       return res.status(200).json({
         success: true,

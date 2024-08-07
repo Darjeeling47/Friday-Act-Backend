@@ -1,16 +1,18 @@
+const knex = require('knex')(require('../../../knexfile').development);
+
 module.exports = async (req, res) => {
-    const { id } = req.params;
+    const id = req.params.tagId;
 
   try {
     // check if the tag already exists
-    const existingTag = await knex('tags').where({ id }).first();
+    const existingTag = await knex('TAGS').where({ id }).first();
 
     if (!existingTag) {
       return res.status(404).json({ message: "This tag is not found." });
     }
 
     // delete the tag
-    await knex('tags').where({ id }).del();
+    await knex('TAGS').where({ id }).del();
 
     return res.status(200).json({
       success: true,

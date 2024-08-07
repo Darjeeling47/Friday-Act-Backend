@@ -1,9 +1,11 @@
+const knex = require('knex')(require('../../../knexfile').development);
+
 module.exports = async (req, res) => {
-    const { id } = req.params;
+    const id = req.params.tagId;
 
   try {
     // check if the tag already exists
-    const tag = await knex('tags').where({ id }).first();
+    const tag = await knex('TAGS').where({ id }).first();
 
     if (!tag) {
       return res.status(404).json({ message: "This tag is not found." });
