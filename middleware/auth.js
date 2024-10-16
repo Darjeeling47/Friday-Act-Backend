@@ -32,7 +32,9 @@ exports.protect = () => {
       });
     }
 
-    req.user.role = userData.userType;
+    if (userData.isApplicationAdmin) {
+      req.user.role = "applicationAdmin";
+    }
     req.user = userData;
 
     next();
