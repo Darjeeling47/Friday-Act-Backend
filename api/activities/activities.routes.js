@@ -9,4 +9,4 @@ const createActivity = require('./createActivity');
 activitiesRoute.post('/', versionMiddleware(1), createActivity.v1);
 
 // export
-module.exports = semestersRoute;
+module.exports = activitiesRoute;
