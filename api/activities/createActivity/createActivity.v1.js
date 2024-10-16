@@ -1,7 +1,7 @@
 const knex = require('knex')(require('../../../knexfile').development);
 const fs = require('fs').promises
 const path = require('path')
-const fileType = require('file-type')
+const fileType = import('file-type');
 
 module.exports = async (req, res) => {
     try {
