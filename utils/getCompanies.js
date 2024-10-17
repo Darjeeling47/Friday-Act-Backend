@@ -1,10 +1,8 @@
-exports.getCompanies = function getCompanies(page, limit, search) {
+exports.getCompanies = function getCompanies(search) {
     const axios = require('axios');
 
     const companies = axios.get('https://cedtintern.cp.eng.chula.ac.th/api/companies', {
         params: {
-            page: page || 1,
-            limit: limit || 25,
             search: search || ''
         },
         headers: {
