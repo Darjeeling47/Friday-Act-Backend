@@ -75,12 +75,12 @@ module.exports = async (req, res) => {
                 semester_id: semesterId
             }).returning('*')
 
-            const posterPath = path.join(posterFolder, `${activity.id}.jpeg`)
+            const posterPath = path.join(posterFolder, `${activity.id}.png`)
 
             // Create folder if it doesn't exist
             await fs.mkdir(posterFolder, { recursive: true })
 
-            let posterUrl = `/image/activities/poster/${activity.id}.jpeg`
+            let posterUrl = `/image/activities/poster/${activity.id}.png`
             // Save the image file
             await fs.writeFile(posterPath, imageBuffer, 'base64')
 
