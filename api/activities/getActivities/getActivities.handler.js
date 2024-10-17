@@ -1,3 +1,3 @@
-const v1 = require('./getActivities.v1');
+const getActivitiesV1 = require('./getActivities.v1');
 
-exports.v1 = v1;
+exports.v1 = getActivitiesV1;
