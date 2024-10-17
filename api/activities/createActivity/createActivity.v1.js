@@ -80,7 +80,7 @@ module.exports = async (req, res) => {
             // Create folder if it doesn't exist
             await fs.mkdir(posterFolder, { recursive: true })
 
-            posterUrl = `/image/activities/poster/${activity.id}.jpeg`
+            let posterUrl = `/image/activities/poster/${activity.id}.jpeg`
             // Save the image file
             await fs.writeFile(posterPath, imageBuffer, 'base64')
 
