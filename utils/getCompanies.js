@@ -1,23 +1,25 @@
-exports.getCompanies = function getCompanies(search) {
-    const axios = require('axios');
+const axios = require('axios');
 
-    const companies = axios.get('https://cedtintern.cp.eng.chula.ac.th/api/companies', {
-        params: {
-            search: search || ''
-        },
+exports.getCompanies = function getCompanies(search, token) {
+    const options = {
+        method: 'GET',
+        url: 'https://cedtintern.cp.eng.chula.ac.th/api/internal/v1/companies',
         headers: {
-            'accept': 'application/json, text/plain, */*',
-            'cookie': `token=${token}`,
+          accept: 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        params: {
+            search: search.search,
+            limit: search.limit,
+            page: search.page
         }
-    })
-    .catch(error => {
-        console.error('Error fetching data:', error);
-    });
-    
-    Promise.all([companies])
-        .then((values) => {
-            console.log(values[0].data);
+    };
+        
+    const company = axios.request(options).then(function (response) {
+        console.log(response.data);
+        }).catch(function (error) {
+        console.error(error);
         });
     
-    return companies;    
+    return company;
 };

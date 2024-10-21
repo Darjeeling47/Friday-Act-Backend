@@ -1,21 +1,20 @@
-exports.getCompany = async function getCompany(companyId) {
-    const axios = require('axios');
+const axios = require('axios');
 
-    const company = axios.get(`https://cedtintern.cp.eng.chula.ac.th/api/internal/v1/companies/${companyId}`, {
-
+exports.getCompany = async function getCompany(companyId, token) {
+    const options = {
+        method: 'GET',
+        url: 'https://cedtintern.cp.eng.chula.ac.th/api/internal/v1/companies/' + companyId,
         headers: {
-            'accept': 'application/json, text/plain, */*',
-            'cookie': `token=${token}`,
+          accept: 'application/json',
+          Authorization: `Bearer ${token}`
         }
-    })
-    .catch(error => {
-        console.error('Error fetching data:', error);
+    };
+      
+    const company = axios.request(options).then(function (response) {
+    console.log(response.data);
+    }).catch(function (error) {
+    console.error(error);
     });
-    
-    Promise.all([company])
-        .then((value) => {
-            console.log(value);
-        });
-    
-    return company;    
+  
+    return company;
 };
