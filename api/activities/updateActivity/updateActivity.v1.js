@@ -21,12 +21,6 @@ module.exports = async (req, res) => {
             return res.status(400).json({ message: "The start time must be in the future." });
         }
 
-        // check company
-        const company = await getCompany(companyId);
-        if (!company) {
-            return res.status(400).json({ message: "Invalid company." });
-        }
-
         // check poster
         if (poster) {
             // remove the data:image;base64, prefix
@@ -60,13 +54,30 @@ module.exports = async (req, res) => {
             return res.status(400).json({ message: "The max participants must be at least 0." });
         }
 
-        //The tags must have at least 1 and not more than 3.
-        if (tags.length < 1 || tags.length > 3) {
-            return res.status(400).json({ message: "The tags must have at least 1 and not more than 3." });
+        if (tags) {
+            //The tags must have at least 1 and not more than 3.
+            if (tags.length < 1 || tags.length > 3) {
+                return res.status(400).json({ message: "The tags must have at least 1 and not more than 3." });
+            }
+        }
+
+        // check semester
+        let semesterId = null;
+        if (date){
+            let semester = await knex('SEMESTERS').where('start_date', '<=', date).andWhere('end_date', '>=', date).first()
+            if (!semester) {
+                // get the nerest semester
+                semester = await knex('SEMESTERS').where('start_date', '>', date).orderBy('start_date', 'asc').first()
+            }
+            if (!semester) {
+                return res.status(400).json({ message: "There is no semester available." });
+            }
+
+            semesterId = semester.id
         }
 
         // update activity
-        let activity = knex('ACTIVITIES').where('id', id).update({
+        let activity = await knex('ACTIVITIES').where('id', id).update({
             company_id: companyId,
             name,
             description,
@@ -78,22 +89,16 @@ module.exports = async (req, res) => {
             semester_id: semesterId
         }).returning('*')
 
-        // check semester
-        if (date){
-            let semester = await knex('SEMESTERS').where('start_date', '<=', date).andWhere('end_date', '>=', date).first()
-            if (!semester) {
-                // get the nerest semester
-                semester = await knex('SEMESTERS').where('start_date', '>', date).orderBy('start_date', 'asc').first()
-            }
-            if (!semester) {
-                return res.status(400).json({ message: "There is no semester available." });
-            }
-            // update semester id
-            activity = knex('ACTIVITIES').where('id', id).update({ semester_id: semester.id }).returning('*')
+        let token;
+        if (
+            req.headers.authorization &&
+            req.headers.authorization.startsWith("Bearer")
+          ) {
+            token = req.headers.authorization.split(" ")[1];
         }
 
-        // promise all activities
-        activity = await activity;
+        // get company
+        const company = await getCompany.getCompany(activity[0].company_id, token);
 
         // add company to activity
         activity[0].company = company;
