@@ -2,7 +2,7 @@ require("../utils/getIDPauthorizationToken");
 require("../utils/getStudentData");
 const { getUserInfoFromToken } = require("../utils/getUserInfoFromToken");
 
-exports.protect = () => {
+exports.protect = async (req, res, next) => {
   try {
     let token;
 
@@ -23,7 +23,7 @@ exports.protect = () => {
       });
     }
 
-    const userData = getUserInfoFromToken(token);
+    const userData = await getUserInfoFromToken(token);
 
     if (!userData) {
       return res.status(401).json({
@@ -32,9 +32,6 @@ exports.protect = () => {
       });
     }
 
-    if (userData.isApplicationAdmin) {
-      req.user.role = "applicationAdmin";
-    }
     req.user = userData;
 
     next();
@@ -44,14 +41,15 @@ exports.protect = () => {
   }
 };
 
-exports.authorize = (...roles) => {
+exports.authorize = (role) => {
   return (req, res, next) => {
     //Check if this role have permission to access this route
-    if (!roles.includes(req.user.role)) {
+    if ( !req.user.isApplicationAdmin ) {
       return res.status(403).json({
         success: false,
         message:
           "This user account don't have permission to access this function.",
+        message: `This user account don't have permission to access this function. ${req.user.role}`,
       });
     }
 
