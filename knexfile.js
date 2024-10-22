@@ -13,6 +13,7 @@ module.exports = {
       user: process.env.DATABASE_USERNAME,
       password: process.env.DATABASE_USER_PASSWORD,
       database: process.env.DATABASE_NAME,
+      timezone: "UTC",
     },
     pool: { min: parseInt(process.env.DATABASE_POOL_MIN), max: parseInt(process.env.DATABASE_POOL_MAX) },
     acquireConnectionTimeout: 10000,
