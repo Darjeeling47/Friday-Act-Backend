@@ -1,7 +1,6 @@
 const knex = require('knex')(require('../../../knexfile').development);
 const fs = require('fs').promises
 const path = require('path')
-const fileType = import('file-type');
 
 module.exports = async (req, res) => {
     try {
@@ -32,21 +31,17 @@ module.exports = async (req, res) => {
 
         if (poster) {
             // remove the data:image;base64, prefix
-            const posterImg = profile.replace(/^data:image\/\w+;base64,/, '')
+            const posterImg = poster.replace(/^data:image\/\w+;base64,/, '')
 
             const posterFolder = path.join('image', 'activities', 'poster')
+
+            // check if the image is a valid type
+            if (!posterImg.match(/^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$/)) {
+                return res.status(400).json({ message: "The poster is not a valid image." });
+            }
             
             // Decode the Base64 string
             const imageBuffer = Buffer.from(posterImg, 'base64')
-
-            // check file type
-            const type = await fileType.fromBuffer(imageBuffer)
-
-            if (!type || !['jpg', 'jpeg', 'png', 'webp'].includes(type.ext)) {
-                return res
-                .status(400)
-                .json({ success: false, message: 'Invalid image format.' })
-            }
 
             // get semester id
             let semester = await knex('SEMESTERS').where('start_date', '<=', date).andWhere('end_date', '>=', date).first()
@@ -75,17 +70,17 @@ module.exports = async (req, res) => {
                 semester_id: semesterId
             }).returning('*')
 
-            const posterPath = path.join(posterFolder, `${activity.id}.png`)
+            const posterPath = path.join(posterFolder, `${activity[0].id}.png`)
 
             // Create folder if it doesn't exist
             await fs.mkdir(posterFolder, { recursive: true })
 
-            let posterUrl = `/image/activities/poster/${activity.id}.png`
+            let posterUrl = `/image/activities/poster/${activity[0].id}.png`
             // Save the image file
             await fs.writeFile(posterPath, imageBuffer, 'base64')
 
             // Update the activity with the poster url
-            await knex('ACTIVITIES').where('id', activity.id).update({ poster_url: posterUrl })
+            await knex('ACTIVITIES').where('id', activity[0].id).update({ poster_url: posterUrl })
         } else {
             // get semester id
             let semester = await knex('SEMESTERS').where('start_date', '<=', date).andWhere('end_date', '>=', date).first()
@@ -118,7 +113,7 @@ module.exports = async (req, res) => {
         // insert tags
         for (const tag of tags) {
             await knex('ACTIVITY_TAGS').insert({
-                activity_id: activity.id,
+                activity_id: activity[0].id,
                 tag_id: tag
             })
         }
