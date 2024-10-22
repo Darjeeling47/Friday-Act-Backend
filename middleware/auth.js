@@ -49,7 +49,6 @@ exports.authorize = (role) => {
         success: false,
         message:
           "This user account don't have permission to access this function.",
-        message: `This user account don't have permission to access this function. ${req.user.role}`,
       });
     }
 
