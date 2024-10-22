@@ -20,8 +20,13 @@ module.exports = async (req, res) => {
         // Get the participants of the activity
         const participants = await knex('APPLICATIONS').where('activity_id', id).select('user_id');
 
+        // check if the participants is empty
+        if (!participants.length) {
+            return res.status(200).json({ success: true, count: 0, participants: [] });
+        }
+
         // Get the student data of the participant
-        const studentData = await Promise.all(participants.map(async participant => {
+        let studentData = await Promise.all(participants.map(async participant => {
             return await getStudentData( token, participant.user_id);
         }));
 

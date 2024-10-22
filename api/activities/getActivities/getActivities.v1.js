@@ -24,13 +24,6 @@ module.exports = async (req, res) => {
 
         }
 
-        // Pagination validation
-        if (pageNum > totalPages || pageNum < 1) {
-            if (totalRecords !== 0) {
-            return res.status(400).json({ message: "This page number is invalid." });
-            }
-        }
-
         // Apply sorting
         query = applySort(query, req.query);
 
@@ -56,7 +49,7 @@ module.exports = async (req, res) => {
         if (req.user && req.user.role !== 'applicationAdmin') {
             // Get user applications
             const userApplications = await knex('APPLICATIONS')
-                .where('user_id', req.user.id)
+                .where('user_id', req.user.userId)
                 .select('activity_id');
 
             // Add isApplied to each activity
@@ -72,13 +65,13 @@ module.exports = async (req, res) => {
             activities,
             pagination: {
                 currentPage: pageNum,
-                perPage: validLimit
+                pageLimit: pageLimit,
             }
         });
 
     } catch (error) {
         console.error(error);
-        res.status(500).send('Internal Server Error');
+        return res.status(500).json({ success: false, message: "Internal server error." });
     }
 }
 
