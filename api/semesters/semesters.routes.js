@@ -14,16 +14,16 @@ const deleteSemester = require('./deleteSemester');
 semestersRoute.post('/', versionMiddleware(1), protect, authorize('applicationAdmin'), createSemester.v1);
 
 // get many semester
-semestersRoute.get('/', versionMiddleware(1), protect, getSemesters.v1);
+semestersRoute.get('/', versionMiddleware(1), getSemesters.v1);
 
 // get one semester
-semestersRoute.get('/:semesterId', versionMiddleware(1), protect, getSemester.v1);
+semestersRoute.get('/:semesterId', versionMiddleware(1), getSemester.v1);
 
 // update a semester
-semestersRoute.put('/:semesterId', versionMiddleware(1), protect, updateSemester.v1);
+semestersRoute.put('/:semesterId', versionMiddleware(1), protect, authorize('applicationAdmin'),updateSemester.v1);
 
 // delete a semester
-semestersRoute.delete('/:semesterId', versionMiddleware(1), protect, deleteSemester.v1);
+semestersRoute.delete('/:semesterId', versionMiddleware(1), protect, authorize('applicationAdmin'),deleteSemester.v1);
 
 // export
 module.exports = semestersRoute;
