@@ -2,7 +2,6 @@ const knex = require('knex')(require('../../../knexfile').development);
 
 module.exports = async (req, res, next) => {
   const id = req.params.semesterId;
-  console.log('id:', id);
 
   try {
     // check if the semester already exists

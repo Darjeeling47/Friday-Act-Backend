@@ -43,15 +43,15 @@ module.exports = async (req, res, next) => {
         return res.status(409).json({ message: "This semester is already existed." });
       }
     }
-
+    
     // update the semester
     const updatedSemester = await knex('SEMESTERS')
       .where({ id })
       .update({
         year: year || existingSemester.year,
         semester: semester || existingSemester.semester,
-        start_date: startDate || existingSemester.startDate,
-        end_date: endDate || existingSemester.endDate,
+        start_date: startDate || existingSemester.start_date,
+        end_date: endDate || existingSemester.end_date,
         updated_at: knex.fn.now()
       })
       .returning('*');

@@ -29,27 +29,21 @@ module.exports = async (req, res, next) => {
     .limit(limit > 100 ? 100 : limit)
     .offset((page - 1) * limit);
 
-    // Count total records
-    const countResult = await query.clone().count({ count: '*' }).first();
-
-    // Check if countResult exists and has a count property
-    const totalRecords = countResult ? parseInt(countResult.count, 10) : 0;
-
-    console.log('Total Records:', totalRecords);
-
-    const total = totalRecords;
-    const totalPages = Math.ceil(total / limit);
-
-    if (page > totalPages && totalPages > 0) {
-      return res.status(400).json({ message: "This page number is invalid." });
-    }
-
     // query data
     const semesters = await query
       .limit(limit)
       .offset((page - 1) * limit)
       .orderBy('year', 'desc')
       .orderBy('semester', 'desc');
+
+    // Count total records
+    
+    const total = semesters.length;
+    const totalPages = Math.ceil(total / limit);
+
+    if (page > totalPages && totalPages > 0) {
+      return res.status(400).json({ message: "This page number is invalid." });
+    }
 
     // pagination
     const pagination = {

@@ -1,9 +1,9 @@
-const semester = require('./semesters');
-const tag = require('./tags');
-const applications = require('./applications');
+const semesters = require('./semesters');
+const tags = require('./tags');
+const activities = require('./activities');
 
 module.exports = {
-  semester,
-  tag,
-  applications
+  semesters,
+  tags,
+  activities,
 }
