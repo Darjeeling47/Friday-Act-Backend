@@ -98,7 +98,7 @@ module.exports = async (req, res) => {
         }
 
         // get company
-        const company = await getCompany.getCompany(activity[0].company_id, token);
+        const company = await getCompany.getCompany(activity[0].company_id);
 
         // add company to activity
         activity[0].company = company;
