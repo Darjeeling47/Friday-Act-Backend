@@ -1,6 +1,9 @@
 const axios = require('axios');
+const { getIDPaccessToken } = require('./getIDPaccessToken');
 
-exports.getCompany = async function getCompany(companyId, token) {
+exports.getCompany = async function getCompany(companyId) {
+    const token = await getIDPaccessToken();
+
     const options = {
         method: 'GET',
         url: 'https://cedtintern.cp.eng.chula.ac.th/api/internal/v1/companies/' + companyId,

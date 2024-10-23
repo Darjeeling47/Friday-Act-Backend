@@ -1,4 +1,3 @@
-require("../utils/getIDPauthorizationToken");
 require("../utils/getStudentData");
 const { getUserInfoFromToken } = require("../utils/getUserInfoFromToken");
 
