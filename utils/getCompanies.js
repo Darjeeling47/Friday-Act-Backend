@@ -18,11 +18,11 @@ exports.getCompanies = async function getCompanies(search) {
         }
     };
         
-    const company = axios.request(options).then(function (response) {
-        console.log(response.data);
-        }).catch(function (error) {
+    try {
+        const response = await axios.request(options);
+        return response.data;
+      } catch (error) {
         console.error(error);
-        });
-    
-    return company;
+        return null;
+    }
 };

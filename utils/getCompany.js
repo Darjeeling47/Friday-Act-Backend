@@ -13,11 +13,11 @@ exports.getCompany = async function getCompany(companyId) {
         }
     };
       
-    const company = axios.request(options).then(function (response) {
-    console.log(response.data);
-    }).catch(function (error) {
-    console.error(error);
-    });
-  
-    return company;
+    try {
+      const response = await axios.request(options);
+      return response.data;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
 };
