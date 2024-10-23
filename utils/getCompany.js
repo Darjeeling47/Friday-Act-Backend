@@ -14,7 +14,6 @@ exports.getCompany = async function getCompany(companyId) {
     };
       
     const company = axios.request(options).then(function (response) {
-    console.log(response.data);
     }).catch(function (error) {
     console.error(error);
     });
