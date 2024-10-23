@@ -7,6 +7,9 @@ module.exports = async (req, res) => {
         // delete application
         await knex('APPLICATIONS').where('activity_id', id).del();
 
+        // delete tags
+        await knex('ACTIVITY_TAGS').where('activity_id', id).del();
+
         // delete activity
         await knex('ACTIVITIES').where('id', id).del();
 
