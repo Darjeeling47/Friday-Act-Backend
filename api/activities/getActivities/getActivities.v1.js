@@ -1,6 +1,7 @@
 const knex = require('knex')(require('../../../knexfile').development);
 const axios = require('axios');
-const getCompanies = require('../../../utils/getCompanies');
+const { getCompanies } = require('../../../utils/getCompanies');
+const { getCompany } = require('../../../utils/getCompany');
 
 module.exports = async (req, res) => {
     try {
@@ -16,7 +17,9 @@ module.exports = async (req, res) => {
 
         // search by company name
         if (search) {
-            const company = getCompanies(search);
+            let searchParam = {};
+            searchParam.search = search;
+            const company = await getCompanies(searchParam);
 
             const companyIds = company.items.map(company => company.companyId);
 
@@ -29,9 +32,6 @@ module.exports = async (req, res) => {
 
         // Apply pagination
         query = query.limit(pageLimit).offset(offset);
-
-        // Apply group by
-        query = applyGroupBy(query, req.query.group);
 
         // Get activities
         const activities = await query.select('ACTIVITIES.*');
@@ -58,11 +58,61 @@ module.exports = async (req, res) => {
             });
         } 
 
+        // get semester
+        for (const activity of activities) {
+
+            // get semester
+            const semester = await knex('SEMESTERS')
+                .where('id', activity.semester_id)
+                .first();
+
+            activity.semester = semester;
+
+            // get company
+            const company = await getCompany(activity.company_id);
+            activity.company = company;
+
+            // get tags id
+            const tagsId = await knex('ACTIVITY_TAGS')
+                .where('activity_id', activity.id)
+                .select('tag_id');
+
+            // get tags
+            const tags = await knex('TAGS').whereIn('id', tagsId.map(tag => tag.tag_id));
+            activity.tags = tags;
+        }
+
+        const groupActivities = applyGroupBy(activities, req.query.group);
+
+        if (req.query.group === 'date') {
+            return res.status(200).json({
+                success: true,
+                count: activities.length,
+                dates: groupActivities,
+                pagination: {
+                    currentPage: pageNum,
+                    pageLimit: pageLimit,
+                }
+            });
+        }
+
+        if (req.query.group === 'semester') {
+            return res.status(200).json({
+                success: true,
+                count: activities.length,
+                semesters: groupActivities,
+                pagination: {
+                    currentPage: pageNum,
+                    pageLimit: pageLimit,
+                }
+            });
+        }
+
         // response
         return res.status(200).json({
             success: true,
             count: activities.length,
-            activities,
+            groupActivities,
             pagination: {
                 currentPage: pageNum,
                 pageLimit: pageLimit,
@@ -107,7 +157,7 @@ const applyFilters = (query, filters) => {
     }
   
     if (semester) {
-        query.where('ACTIVITIES.semester_id', semester);
+-       query.where('ACTIVITIES.semester_id', semester);
     }
 
     if (tags) {
@@ -131,13 +181,50 @@ const applySort = (query, sort) => {
 };
 
 // Helper for group by
-const applyGroupBy = (query, group) => {
+const applyGroupBy = (activities, group) => {
     if (group === 'semester') {
-        query.groupBy('ACTIVITIES.semester_id');
+        // Group activities by semester
+        const groupedBySemester = activities.reduce((acc, activity) => {
+            const semesterKey = activity.semester_id;
+            
+            if (!acc[semesterKey]) {
+                const semester = {
+                    semester: activity.semester
+                };
+                semester.activities = [];
+                acc[semesterKey] = semester;
+            }
+            
+            acc[semesterKey].activities.push(activity);
+            
+            return acc;
+        }, {});
+
+        return Object.values(groupedBySemester);
+
     }
     else if (group === 'date') {
-        query.groupBy('ACTIVITIES.date');
+        // Group activities by semester
+        const groupedByDate = activities.reduce((acc, activity) => {
+            const dateKey = activity.date;
+            
+            if (!acc[dateKey]) {
+                const dates = {
+                    date: activity.date
+                };
+                dates.activities = [];
+                dates.semester = activity.semester;
+                acc[dateKey] = dates;
+            }
+            
+            acc[dateKey].activities.push(activity);
+            
+            return acc;
+        }, {});
+
+        return Object.values(groupedByDate);
+
     }
 
-    return query;
+    return activities;
 };
