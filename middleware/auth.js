@@ -18,7 +18,7 @@ exports.protect = async (req, res, next) => {
       return res.status(401).json({
         success: false,
         message:
-          "This user account don't have permission to access this function. EiEi",
+          "This user account don't have permission to access this function.",
       });
     }
 
@@ -27,7 +27,7 @@ exports.protect = async (req, res, next) => {
     if (!userData) {
       return res.status(401).json({
         success: false,
-        message: "User not found EiEi",
+        message: "User not found",
       });
     }
 
@@ -47,7 +47,7 @@ exports.authorize = (role) => {
       return res.status(403).json({
         success: false,
         message:
-          "This user account don't have permission to access this function. EiEi",
+          "This user account don't have permission to access this function.",
       });
     }
 
