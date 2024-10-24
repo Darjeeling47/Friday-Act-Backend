@@ -14,18 +14,15 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    # Step 2: Set up SSH
-    - name: Setup SSH
-      uses: webfactory/ssh-agent@v0.5.4
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-    # Step 3: Deploy code to server
+    # Step 2: Deploy code via SSH
     - name: Deploy to server
-      run: |
-        ssh -o StrictHostKeyChecking=no root@143.198.87.246 "
-          cd /Friday-Act-Backend &&
+      uses: appleboy/ssh-action@v0.1.5
+      with:
+        host: 143.198.87.246  # Your server IP
+        username: root         # Logging in as root
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          cd /path/to/your/project &&
           git pull origin main &&
           npm install &&
-          pm2 restart all  # or the command you use to restart your service
-        "
+          pm2 restart all
