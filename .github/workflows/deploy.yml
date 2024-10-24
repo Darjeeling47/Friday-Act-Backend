@@ -25,4 +25,4 @@ jobs:
           cd Friday-Act-Backend/ &&
           git pull origin main &&
           npm install &&
-          pm2 restart all
+          /root/.nvm/versions/node/v23.0.0/bin/pm2 restart all
