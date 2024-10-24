@@ -22,7 +22,7 @@ jobs:
         username: root         # Logging in as root
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          cd /path/to/your/project &&
+          cd Friday-Act-Backend/ &&
           git pull origin main &&
           npm install &&
           pm2 restart all
