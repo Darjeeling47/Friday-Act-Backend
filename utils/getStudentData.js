@@ -1,6 +1,9 @@
 const axios = require('axios');
+const { getIDPaccessToken } = require('./getIDPaccessToken');
 
-exports.getStudentData = function getStudentData(token, studentId) {
+exports.getStudentData = async function getStudentData(studentId) {
+  const token = await getIDPaccessToken();
+
   const options = {
     method: 'GET',
     url: 'https://cedtintern.cp.eng.chula.ac.th/api/internal/v1/students',

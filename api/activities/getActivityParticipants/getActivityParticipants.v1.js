@@ -27,7 +27,7 @@ module.exports = async (req, res) => {
 
         // Get the student data of the participant
         let studentData = await Promise.all(participants.map(async participant => {
-            return await getStudentData( token, participant.user_id);
+            return await getStudentData( participant.user_id);
         }));
 
         studentData = studentData.items;
