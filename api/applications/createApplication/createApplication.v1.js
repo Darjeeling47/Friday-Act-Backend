@@ -1,4 +1,5 @@
 const { getCompany } = require("../../../utils/getCompany");
+const { getStudentData } = require("../../../utils/getStudentData");
 
 const knex = require("knex")(require("../../../knexfile").development);
 
@@ -22,7 +23,8 @@ module.exports = async (req, res, next) => {
     const now = new Date(Date.now());
 
     // Check if user exist
-    const userObj = null;
+    const userObj = await getStudentData(userId);
+    
     // Check if the activity id exist
     const activityIdObj = await knex("ACTIVITIES")
       .where({ id: activityId })
