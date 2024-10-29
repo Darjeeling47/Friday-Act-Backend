@@ -1,5 +1,5 @@
 const knex = require('knex')(require('../../../knexfile').development);
-const getCompany = require('../../../utils/getCompany');
+const { getCompany } = require('../../../utils/getCompany');
 
 module.exports = async (req, res) => {
     try {
@@ -76,8 +76,7 @@ module.exports = async (req, res) => {
             semesterId = semester.id
         }
 
-        // update activity
-        let activity = await knex('ACTIVITIES').where('id', id).update({
+        let bodyData = {
             company_id: companyId,
             name,
             description,
@@ -86,8 +85,14 @@ module.exports = async (req, res) => {
             location,
             max_participants: maxParticipants,
             speaker,
-            semester_id: semesterId
-        }).returning('*')
+        }
+
+        if (semesterId) {
+            bodyData.semester_id = semesterId
+        }
+
+        // update activity
+        let activity = await knex('ACTIVITIES').where('id', id).update(bodyData).returning('*')
 
         let token;
         if (
@@ -98,7 +103,7 @@ module.exports = async (req, res) => {
         }
 
         // get company
-        const company = await getCompany.getCompany(activity[0].company_id, token);
+        const company = await getCompany(activity[0].company_id);
 
         // add company to activity
         activity[0].company = company;
