@@ -1,6 +1,9 @@
 const axios = require('axios');
+const { getIDPaccessToken } = require('./getIDPaccessToken');
 
-exports.getCompanies = function getCompanies(search, token) {
+exports.getCompanies = async function getCompanies(search) {
+    const token = await getIDPaccessToken();
+
     const options = {
         method: 'GET',
         url: 'https://cedtintern.cp.eng.chula.ac.th/api/internal/v1/companies',
@@ -15,11 +18,11 @@ exports.getCompanies = function getCompanies(search, token) {
         }
     };
         
-    const company = axios.request(options).then(function (response) {
-        console.log(response.data);
-        }).catch(function (error) {
+    try {
+        const response = await axios.request(options);
+        return response.data;
+      } catch (error) {
         console.error(error);
-        });
-    
-    return company;
+        return null;
+    }
 };

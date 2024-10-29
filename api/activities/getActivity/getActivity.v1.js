@@ -1,5 +1,5 @@
 const knex = require('knex')(require('../../../knexfile').development);
-const getCompanies = require('../../../utils/getCompanies');
+const { getCompany } = require('../../../utils/getCompany');
 
 module.exports = async (req, res) => {
     try {
@@ -29,6 +29,25 @@ module.exports = async (req, res) => {
 
             activity.application = latestApplication;
         }
+
+        // get semester
+        const semester = await knex('SEMESTERS')
+        .where('id', activity.semester_id)
+        .first();
+        activity.semester = semester;
+
+        // get company
+        const company = await getCompany(activity.company_id);
+        activity.company = company;
+
+        // get tags id
+        const tagsId = await knex('ACTIVITY_TAGS')
+            .where('activity_id', activity.id)
+            .select('tag_id');
+
+        // get tags
+        const tags = await knex('TAGS').whereIn('id', tagsId.map(tag => tag.tag_id));
+        activity.tags = tags;
 
         return res.status(200).json({ success: true, activity: { ...activity, currentParticipants: currentParticipants.current_participants } });
     } catch (error) {
