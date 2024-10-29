@@ -67,7 +67,7 @@ module.exports = async (req, res, next) => {
 
     const activityMilliSecondsSinceMidNight =
       (activityObj.start_time.slice(0, 2) * 60 +
-        activityObj.start_time.slice(3)) *
+        activityObj.start_time.slice(3,5)) *
       60 *
       1000;
     const todayMilliSecondsSinceMidNight = now % 86400000;
