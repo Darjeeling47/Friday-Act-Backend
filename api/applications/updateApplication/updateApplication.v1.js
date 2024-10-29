@@ -1,3 +1,5 @@
+const { getStudentData } = require("../../../utils/getStudentData");
+
 module.exports = async (req, res, next) => {
   try {
     const applicationId = req.params.id;
@@ -9,7 +11,7 @@ module.exports = async (req, res, next) => {
       updatedAt,
       isQrGenerated,
       qrString,
-      qrGeneratedAt, // How to validate this?
+      qrGeneratedAt,
       isApproved,
       isCanceled,
       cancellationReason,
@@ -19,10 +21,22 @@ module.exports = async (req, res, next) => {
 
     const now = new Date(Date.now());
 
-    let applicationObj = {};
+    let applicationUpdateObj = {};
+
+    const applicationObj = await knex("APPLICATIONS")
+    .where({ id: applicationId })
+    .select("*")
+    .first();
+
+    if (!applicationObj) {
+      return res.status(404).json({
+        success: false,
+        message: "This application is not found."
+      })
+    }
 
     // Check if user exist
-    const userObj = null;
+    const userObj = await getStudentData(applicationObj.user_id)
     // Check if the activity id exist
     const activityObj = await knex("ACTIVITIES")
       .where({ id: activityId })
@@ -45,68 +59,68 @@ module.exports = async (req, res, next) => {
         });
       }
     }
-    applicationObj.activity_id = activityId;
-    applicationObj.user_id = userId;
+    applicationUpdateObj.activity_id = activityId;
+    applicationUpdateObj.user_id = userId;
 
     if (createdAt) {
       if (isNaN(Date.parse(createdAt))) {
         createdAt = now;
       }
-      applicationObj.created_at = createdAt;
+      applicationUpdateObj.created_at = createdAt;
     }
 
     if (updatedAt) {
       if (isNaN(Date.parse(updatedAt))) {
         updatedAt = now;
       }
-      applicationObj.updated_at = updatedAt;
+      applicationUpdateObj.updated_at = updatedAt;
     }
 
     if (isQrGenerated) {
       if (typeof isQrGenerated != "boolean") {
         isQrGenerated = false;
       }
-      applicationObj.is_qr_generated = isQrGenerated;
+      applicationUpdateObj.is_qr_generated = isQrGenerated;
     }
 
     if (qrGeneratedAt) {
       if (isNaN(Date.parse(qrGeneratedAt))) {
         qrGeneratedAt = now;
       }
-      applicationObj.qr_generated_at = qrGeneratedAt;
+      applicationUpdateObj.qr_generated_at = qrGeneratedAt;
     }
 
     if (isApproved) {
       if (typeof isApproved != "boolean") {
         isApproved = false;
       }
-      applicationObj.is_approved = isApproved;
+      applicationUpdateObj.is_approved = isApproved;
     }
 
     if (isCanceled) {
       if (typeof isCanceled != "boolean") {
         isCanceled = false;
       }
-      applicationObj.is_canceled = isCanceled;
+      applicationUpdateObj.is_canceled = isCanceled;
     }
 
     if (qrString) {
       if (typeof qrString != "string") {
         qrString = null;
       }
-      applicationObj.qr_string = qrString;
+      applicationUpdateObj.qr_string = qrString;
     }
 
     if (cancellationReason) {
       if (typeof cancellationReason != "string") {
         cancellationReason = null;
       }
-      applicationObj.cancellation_reason = cancellationReason;
+      applicationUpdateObj.cancellation_reason = cancellationReason;
     }
 
     const updatedApplication = await knex("APPLICATIONS")
       .where({ id: applicationId })
-      .update(applicationObj)
+      .update(applicationUpdateObj)
       .returning("*");
 
       const activitySemesterObj = await knex("SEMESTER")
