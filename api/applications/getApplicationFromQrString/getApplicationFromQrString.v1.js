@@ -1,4 +1,5 @@
 const { getCompany } = require("../../../utils/getCompany");
+const { getStudentData } = require("../../../utils/getStudentData");
 
 module.exports = async (req, res, next) => {
   try {
@@ -35,7 +36,7 @@ module.exports = async (req, res, next) => {
     }
 
     //TODO get user
-    const userObj = null;
+    const userObj = getStudentData(qrObj.userId);
 
     const activityObj = await knex("ACTIVITIES")
       .where("id", application.activity_id)
