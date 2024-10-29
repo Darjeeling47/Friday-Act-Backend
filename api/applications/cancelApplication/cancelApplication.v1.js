@@ -1,8 +1,11 @@
 const { getCompany } = require("../../../utils/getCompany");
+const { getStudentData } = require("../../../utils/getStudentData");
 
 module.exports = async (req, res, next) => {
   try {
     const applicationId = req.params.id;
+
+    const user = req.user
 
     const { cancellationReason } = req.body;
 
@@ -23,6 +26,15 @@ module.exports = async (req, res, next) => {
         success: false,
         message: "This application is not found.",
       });
+    }
+
+    const userObj = await getStudentData(application.user_id);
+
+    if (user.userId !== application.user_id && user.role !== 'applicationAdmin') {
+      return res.status(401).json({
+        success: false,
+        message: "You cannot cancel others application."
+      })
     }
 
     if (application.is_approved) {
