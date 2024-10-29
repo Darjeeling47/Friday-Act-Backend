@@ -1,19 +1,19 @@
 const crypto = require("node:crypto");
+const { getStudentData } = require("../../../utils/getStudentData");
 
 module.exports = async (req, res, next) => {
   // TODO Convert to promise
   try {
     const { qrString } = req.body;
 
-    const user = req.user;
-
+    
     if (typeof qrString == "undefined" || typeof qrString != "string") {
       return res.status(400).json({
         success: false,
         message: "The Qr String is missing.",
       });
     }
-
+    
     const qrArray = qrString.split("-");
     const qrInfo = [
       "applicationId",
@@ -24,12 +24,13 @@ module.exports = async (req, res, next) => {
     ];
     const qrConversionObj = [qrInfo, qrArray];
     const qrObj = Object.fromEntries(qrConversionObj);
-
+    
+    
     const application = await knex("APPLICATIONS")
-      .where({ id: qrObj.applicationId })
-      .select("*")
-      .first();
-
+    .where({ id: qrObj.applicationId })
+    .select("*")
+    .first();
+    
     if (!application) {
       return res.status(404).json({
         success: false,
@@ -37,6 +38,8 @@ module.exports = async (req, res, next) => {
       });
     }
 
+    const user = await getStudentData(application.user_id);
+    
     if (!application.is_qr_generated) {
       return res.status(409).json({
         success: true,
