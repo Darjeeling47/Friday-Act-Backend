@@ -1,7 +1,11 @@
 const knex = require('knex')(require('../../../knexfile').development);
 
 module.exports = async (req, res) => {
-    const { name, color } = req.body;
+    let { name, color } = req.body;
+
+    // delete the white space
+    name = name && name.trim();
+    color = color && color.trim();
 
   // Validate required fields
   if (!name || !color) {

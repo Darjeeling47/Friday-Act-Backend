@@ -2,7 +2,11 @@ const knex = require('knex')(require('../../../knexfile').development);
 
 module.exports = async (req, res) => {
     const id = req.params.tagId;
-    const { name, color } = req.body;
+    let { name, color } = req.body;
+
+    // delete the white space
+    name = name && name.trim();
+    color = color && color.trim();
 
     // check if name or color is empty
     if (!name || !color) {
