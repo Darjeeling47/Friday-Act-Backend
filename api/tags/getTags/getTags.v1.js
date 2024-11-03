@@ -12,8 +12,8 @@ module.exports = async (req, res) => {
     let query = knex('TAGS');
 
     if (search) {
-      query = query.where('name', 'like', `%${search}%`);
-    }
+      query = query.where('name', 'ILIKE', `%${search}%`);
+    }    
 
     // count total records
     const totalCount = await query.clone().count('id as count').first();
