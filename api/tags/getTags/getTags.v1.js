@@ -24,7 +24,7 @@ module.exports = async (req, res) => {
     const currentPage = Math.min(validPage, lastPage || 1);
 
     if (currentPage < 1) {
-      return res.status(400).json({ message: "This page number is invalid." });
+      return res.status(400).json({ success: false, message: "This page number is invalid." });
     }
 
     // query data
@@ -46,6 +46,6 @@ module.exports = async (req, res) => {
       tags: tags
     });
   } catch (error) {
-    return res.status(500).json({ message: "An error occurred.", error: error.message });
+    return res.status(500).json({ success: false, message: "An error occurred.", error: error.message });
   }
 }

@@ -5,22 +5,22 @@ module.exports = async (req, res) => {
 
   // Validate required fields
   if (!name || !color) {
-    return res.status(400).json({ message: "Some required value is missing." });
+    return res.status(400).json({ success: false, message: "Some required value is missing." });
   }
 
   // Validate length of name and color
   if (name.length > 50) {
-    return res.status(400).json({ message: "The length of name is too long." });
+    return res.status(400).json({ success: false, message: "The length of name is too long." });
   }
 
   if (color.length > 6) {
-    return res.status(400).json({ message: "The length of color is too long." });
+    return res.status(400).json({ success: false, message: "The length of color is too long." });
   }
 
   // Validate color format (HEX format)
   const hexColorRegex = /^[0-9a-f]{6}$/;
   if (!hexColorRegex.test(color)) {
-    return res.status(400).json({ message: "The color format is not in HEX format." });
+    return res.status(400).json({ success: false, message: "The color format is not in HEX format." });
   }
 
   try {
@@ -28,7 +28,7 @@ module.exports = async (req, res) => {
     const existingTag = await knex('TAGS').where({ name }).first();
 
     if (existingTag) {
-      return res.status(409).json({ message: "This tag is already existed." });
+      return res.status(409).json({ success: false, message: "This tag is already existed." });
     }
 
     // create new tag
@@ -44,6 +44,6 @@ module.exports = async (req, res) => {
       tag: newTag
     });
   } catch (error) {
-    return res.status(500).json({ message: "An error occurred.", error: error.message });
+    return res.status(500).json({ success: false, message: "An error occurred.", error: error.message });
   }
 };

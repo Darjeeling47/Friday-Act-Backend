@@ -26,14 +26,14 @@ module.exports = async (req, res) => {
       const existingTag = await knex('TAGS').where({ id }).first();
   
       if (!existingTag) {
-        return res.status(404).json({ message: "This tag is not found." });
+        return res.status(404).json({ success: false, message: "This tag is not found." });
       }
   
       // check if the tag already exists
       if (name) {
         const duplicateTag = await knex('TAGS').where({ name }).andWhereNot({ id }).first();
         if (duplicateTag) {
-          return res.status(409).json({ message: "This tag is already existed." });
+          return res.status(409).json({ success: false, message: "This tag is already existed." });
         }
       }
   
@@ -48,6 +48,6 @@ module.exports = async (req, res) => {
         tag: updatedTag
       });
     } catch (error) {
-      return res.status(500).json({ message: "An error occurred.", error: error.message });
+      return res.status(500).json({ success: false, message: "An error occurred."});
     }
 }
