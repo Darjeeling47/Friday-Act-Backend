@@ -3,6 +3,14 @@ const knex = require('knex')(require('../../../knexfile').development);
 module.exports = async (req, res) => {
     const id = req.params.tagId;
     const { name, color } = req.body;
+
+    // check if name or color is empty
+    if (!name || !color) {
+      return res.status(400).json({
+        success: false,
+        message: "Some required value is missing."
+      });
+    }
   
     // check if the length of name or color is too long
     if ((name && name.length > 50) || (color && color.length > 6)) {
