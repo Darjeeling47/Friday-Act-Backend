@@ -32,6 +32,11 @@ module.exports = async (req, res) => {
         let activity = null
 
         if (poster) {
+            // check poster file type png jpeg jpg webp
+            if (!['image/png', 'image/jpeg', 'image/jpg', 'image/webp'].includes(req.file.mimetype)) {
+                return res.status(400).json({ message: "The poster must be an image file." });
+            }
+
             const posterFolder = path.join('image', 'activities', 'poster')
 
             // get semester id
