@@ -18,7 +18,7 @@ module.exports = async (req, res) => {
   }
 
   // Validate color format (HEX format)
-  const hexColorRegex = /^[0-9A-F]{6}$/;
+  const hexColorRegex = /^[0-9a-f]{6}$/;
   if (!hexColorRegex.test(color)) {
     return res.status(400).json({ message: "The color format is not in HEX format." });
   }
