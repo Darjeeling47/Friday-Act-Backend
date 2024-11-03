@@ -5,7 +5,9 @@ const path = require('path')
 module.exports = async (req, res) => {
     try {
         // get the data from the request body
-        const { name, description, date, startTime, endTime, location, poster, maxParticipants, speaker, companyId, tags } = req.body;
+        const { name, description, date, startTime, endTime, location, maxParticipants, speaker, companyId, tags } = req.body;
+        // get the poster buffer file from the request body
+        const poster = req.file ? req.file.buffer : null;
 
         // validate required fields
         if (!name || !date || !startTime || !endTime || !maxParticipants || !tags) {
@@ -30,18 +32,7 @@ module.exports = async (req, res) => {
         let activity = null
 
         if (poster) {
-            // remove the data:image;base64, prefix
-            const posterImg = poster.replace(/^data:image\/\w+;base64,/, '')
-
             const posterFolder = path.join('image', 'activities', 'poster')
-
-            // check if the image is a valid type
-            if (!posterImg.match(/^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$/)) {
-                return res.status(400).json({ message: "The poster is not a valid image." });
-            }
-            
-            // Decode the Base64 string
-            const imageBuffer = Buffer.from(posterImg, 'base64')
 
             // get semester id
             let semester = await knex('SEMESTERS').where('start_date', '<=', date).andWhere('end_date', '>=', date).first()
@@ -77,7 +68,7 @@ module.exports = async (req, res) => {
 
             let posterUrl = `/image/activities/poster/${activity[0].id}.png`
             // Save the image file
-            await fs.writeFile(posterPath, imageBuffer, 'base64')
+            await fs.writeFile(posterPath, poster)
 
             // Update the activity with the poster url
             await knex('ACTIVITIES').where('id', activity[0].id).update({ poster_url: posterUrl })
