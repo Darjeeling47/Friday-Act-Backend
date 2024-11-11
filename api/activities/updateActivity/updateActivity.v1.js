@@ -1,10 +1,14 @@
 const knex = require('knex')(require('../../../knexfile').development);
 const { getCompany } = require('../../../utils/getCompany');
+const path = require('path')
+const fs = require('fs').promises
 
 module.exports = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, description, date, startTime, endTime, poster, location, maxParticipants, speaker, companyId, tags } = req.body;
+        const { name, description, date, startTime, endTime, location, maxParticipants, speaker, companyId, tags } = req.body;
+        // get the poster buffer file from the request body
+        const poster = req.file ? req.file.buffer : null;
 
         // check if date is in the past
         if (new Date(date) < new Date()) {
@@ -23,22 +27,12 @@ module.exports = async (req, res) => {
 
         // check poster
         if (poster) {
-            // remove the data:image;base64, prefix
-            const posterImg = profile.replace(/^data:image\/\w+;base64,/, '')
+            // check poster file type png jpeg jpg webp
+            if (!['image/png', 'image/jpeg', 'image/jpg', 'image/webp'].includes(req.file.mimetype)) {
+                return res.status(400).json({ message: "The poster must be an image file." });
+            }
 
             const posterFolder = path.join('image', 'activities', 'poster')
-            
-            // Decode the Base64 string
-            const imageBuffer = Buffer.from(posterImg, 'base64')
-
-            // check file type
-            const type = await fileType.fromBuffer(imageBuffer)
-
-            if (!type || !['jpg', 'jpeg', 'png', 'webp'].includes(type.ext)) {
-                return res
-                .status(400)
-                .json({ success: false, message: 'Invalid image format.' })
-            }
 
             const posterPath = path.join(posterFolder, `${id}.png`)
 
@@ -46,7 +40,7 @@ module.exports = async (req, res) => {
             await fs.mkdir(posterFolder, { recursive: true })
 
             // Save the image file
-            await fs.writeFile(posterPath, imageBuffer, 'base64')
+            await fs.writeFile(posterPath, poster, 'base64')
         }
 
         // check max participants
@@ -87,20 +81,19 @@ module.exports = async (req, res) => {
             speaker,
         }
 
+        // check if there is body data is undefined
+        if (Object.values(bodyData).every(x => x === undefined)) {
+            let activity = await knex('ACTIVITIES').where('id', id).returning('*')
+
+            return res.json({ success: true, activity: activity[0] });
+        }
+
         if (semesterId) {
             bodyData.semester_id = semesterId
         }
 
         // update activity
         let activity = await knex('ACTIVITIES').where('id', id).update(bodyData).returning('*')
-
-        let token;
-        if (
-            req.headers.authorization &&
-            req.headers.authorization.startsWith("Bearer")
-          ) {
-            token = req.headers.authorization.split(" ")[1];
-        }
 
         // get company
         const company = await getCompany(activity[0].company_id);
