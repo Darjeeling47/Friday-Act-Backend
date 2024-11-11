@@ -52,7 +52,7 @@ module.exports = async (req, res, next) => {
         });
       }
 
-      if (!activityIdObj) {
+      if (!activityObj) {
         return res.status(404).json({
           success: false,
           message: "This activity is not found.",
