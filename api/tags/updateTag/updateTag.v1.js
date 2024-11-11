@@ -50,10 +50,10 @@ module.exports = async (req, res) => {
       }
   
       // update the tag
-      await knex('TAGS').where({ id }).update({ name, color, updated_at: knex.fn.now() });
+      await knex('TAGS').where({ id }).update({ name, color});
   
       // query the updated tag
-      const updatedTag = await knex('TAGS').where({ id }).first();
+      const updatedTag = await knex('TAGS').where({ id }).select(['id', 'name', 'color']).first();
   
       return res.status(200).json({
         success: true,

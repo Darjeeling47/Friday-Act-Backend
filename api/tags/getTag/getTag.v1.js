@@ -5,7 +5,7 @@ module.exports = async (req, res) => {
 
   try {
     // check if the tag already exists
-    const tag = await knex('TAGS').where({ id }).first();
+    const tag = await knex('TAGS').where({ id }).select(['id', 'name', 'color']).first();
 
     if (!tag) {
       return res.status(404).json({ success: false, message: "This tag is not found." });
