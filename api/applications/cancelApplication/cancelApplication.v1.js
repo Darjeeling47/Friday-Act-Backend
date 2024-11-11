@@ -1,13 +1,21 @@
 const { getCompany } = require("../../../utils/getCompany");
 const { getStudentData } = require("../../../utils/getStudentData");
+const knex = require("knex")(require("../../../knexfile").development);
 
 module.exports = async (req, res, next) => {
   try {
     const applicationId = req.params.id;
 
-    const user = req.user
+    if (applicationId == ":id") {
+      return res.status(404).json({
+        success: false,
+        message: "Undefined Parameter(s)."
+      })
+    }
 
-    const { cancellationReason } = req.body;
+    const user = req.user;
+
+    let { cancellationReason } = req.body;
 
     if (
       typeof cancellationReason == "undefined" ||
@@ -30,7 +38,7 @@ module.exports = async (req, res, next) => {
 
     const userObj = await getStudentData(application.user_id);
 
-    if (user.userId !== application.user_id && user.role !== 'applicationAdmin') {
+    if (user.studentId !== application.user_id && user.role !== 'applicationAdmin') {
       return res.status(401).json({
         success: false,
         message: "You cannot cancel others application."
@@ -57,6 +65,7 @@ module.exports = async (req, res, next) => {
 
     // check with standard_cancellation_cutoff_hour
     const now = Date.now();
+    const nowDateTime = new Date(now);
     const standardCancellationCutoffHour = await knex("SYSTEM_SETTING")
       .where("name", "standard_cancellation_cutoff_hour")
       .first();
@@ -110,9 +119,9 @@ module.exports = async (req, res, next) => {
     }
 
     const applicationObj = {
-      updated_at: now,
+      updated_at: nowDateTime,
       is_canceled: true,
-      cancellationReason: cancellationReason,
+      cancellation_reason: cancellationReason,
     };
 
     const updatedApplication = await knex("APPLICATIONS")
@@ -120,7 +129,7 @@ module.exports = async (req, res, next) => {
       .update(applicationObj)
       .returning("*");
 
-    const activitySemesterObj = await knex("SEMESTER")
+    const activitySemesterObj = await knex("SEMESTERS")
       .where({ id: activityObj.semester_id })
       .select("*")
       .first();
@@ -162,7 +171,7 @@ module.exports = async (req, res, next) => {
       success: true,
       application: applicationRes,
     });
-  } catch {
+  } catch (error) {
     console.log(error);
     return res
       .status(500)

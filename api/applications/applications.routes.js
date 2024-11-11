@@ -17,7 +17,7 @@ const approveAttendanceCheck = require("./approveAttendanceCheck");
 const { protect, authorize } = require("../../middleware/auth");
 
 // Cancel Application
-applicationRoute.put("/:id/cancel", versionMiddleware(1), cancelApplication.v1);
+applicationRoute.put("/:id/cancel", protect, versionMiddleware(1), cancelApplication.v1);
 
 // Request Attendance Check
 applicationRoute.put(
