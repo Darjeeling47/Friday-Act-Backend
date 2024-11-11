@@ -33,7 +33,7 @@ applicationRoute.get("/:id", versionMiddleware(1), getApplication.v1);
 applicationRoute.put("/:id", versionMiddleware(1), updateApplication.v1);
 
 // Delete Application
-applicationRoute.delete("/:id", versionMiddleware(1), deleteApplication.v1);
+applicationRoute.delete("/:id", protect, authorize("applicationAdmin"), versionMiddleware(1), deleteApplication.v1);
 
 // Get Application From QR String
 applicationRoute.get(

@@ -1,10 +1,12 @@
+const knex = require("knex")(require("../../../knexfile").development);
+
 module.exports = async (req, res, next) => {
   try {
     const applicationId = req.params.id;
 
-    const user = req.user;
+    console.log(typeof applicationId);
 
-    if (!applicationId || typeof applicationId == "undefined" || typeof applicationId != "number") {
+    if (!applicationId || typeof applicationId == "undefined" || typeof applicationId != "string") {
       return res.status(404).json({
         success: false,
         message: "This application is not found.",
@@ -27,7 +29,7 @@ module.exports = async (req, res, next) => {
       success: true,
       application: {}
     })
-  } catch {
+  } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "An error occurred.", error: error.message });
   }

@@ -20,7 +20,6 @@ exports.getStudentData = async function getStudentData(studentId) {
   };
   
   const students = await axios.request(options).then(function (response) {
-
     return response.data.items[0]
   }).catch(function (error) {
     console.error(error);
