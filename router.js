@@ -5,6 +5,7 @@ const api = require('./api');
 router.use('/api/:version/semesters', api.semesters);
 router.use('/api/:version/tags', api.tags);
 router.use('/api/:version/activities', api.activities);
+router.use('/api/:version/applications', api.application)
 
 router.get('/', (req, res) => {
   res.send('main page')

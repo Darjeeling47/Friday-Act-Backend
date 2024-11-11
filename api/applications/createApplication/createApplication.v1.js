@@ -5,7 +5,7 @@ const knex = require("knex")(require("../../../knexfile").development);
 
 module.exports = async (req, res, next) => {
   try {
-    const {
+    let {
       userId,
       activityId,
       createdAt,
@@ -24,6 +24,7 @@ module.exports = async (req, res, next) => {
 
     // Check if user exist
     const userObj = await getStudentData(userId);
+
     
     // Check if the activity id exist
     const activityIdObj = await knex("ACTIVITIES")
@@ -33,12 +34,12 @@ module.exports = async (req, res, next) => {
 
     // skip business logic if the user is admin
     if (!user.isApplicationAdmin) {
-      if (!userObj) {
+/*       if (!userObj) {
         return res.status(404).json({
           success: false,
           message: "This user is not found.",
         });
-      }
+      } */
 
       if (!activityIdObj) {
         return res.status(404).json({
@@ -112,7 +113,7 @@ module.exports = async (req, res, next) => {
       })
     }
 
-    const activitySemesterObj = await knex("SEMESTER")
+    const activitySemesterObj = await knex("SEMESTERS")
       .where({ id: activityIdObj.semester_id })
       .select("*")
       .first();
@@ -122,7 +123,7 @@ module.exports = async (req, res, next) => {
     const applicationRes = {
       id: insertedApplication.id,
       user: {
-        id: userObj.id,
+        id: userObj.studentId,
         thaiName: userObj.firstNameTh + " " + userObj.lastNameTh,
         studentId: userObj.studentId,
       },
@@ -154,7 +155,7 @@ module.exports = async (req, res, next) => {
       success: true,
       application: applicationRes,
     });
-  } catch {
+  } catch (error) {
     console.log(error);
     return res
       .status(500)
