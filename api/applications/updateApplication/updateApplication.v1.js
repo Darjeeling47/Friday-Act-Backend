@@ -1,1 +1,195 @@
-module.exports =  async (req, res, next) => {}
+const { getCompany } = require("../../../utils/getCompany");
+const { getStudentData } = require("../../../utils/getStudentData");
+const knex = require("knex")(require("../../../knexfile").development);
+
+module.exports = async (req, res, next) => {
+  try {
+    const applicationId = req.params.id;
+
+    const {
+      userId,
+      activityId,
+      createdAt,
+      updatedAt,
+      isQrGenerated,
+      qrString,
+      qrGeneratedAt,
+      isApproved,
+      isCanceled,
+      cancellationReason,
+    } = req.body;
+
+    if (applicationId == ":id") {
+      return res.status(404).json({
+        success: false,
+        message: "Undefined Parameter(s).",
+      });
+    }
+
+    const user = req.user;
+
+    const now = new Date(Date.now());
+
+    let applicationUpdateObj = {};
+
+    const applicationObj = await knex("APPLICATIONS")
+      .where({ id: applicationId })
+      .select("*")
+      .first();
+
+    if (!applicationObj) {
+      return res.status(404).json({
+        success: false,
+        message: "This application is not found.",
+      });
+    }
+
+    // Check if user exist
+    const userObj = await getStudentData(applicationObj.user_id);
+
+    // Check if the activity id exist
+    let activityObj;
+    if (activityId) {
+      activityObj = await knex("ACTIVITIES")
+        .where({ id: activityId })
+        .select("*")
+        .first();
+
+      applicationUpdateObj.activity_id = activityId;
+    }
+
+    // skip business logic if the user is admin
+    if (!user.isApplicationAdmin) {
+      if (!userObj) {
+        return res.status(404).json({
+          success: false,
+          message: "This user is not found.",
+        });
+      }
+
+      if (typeof activityId != "undefined" && !activityObj) {
+        return res.status(404).json({
+          success: false,
+          message: "This activity is not found.",
+        });
+      }
+    }
+
+    if (userId || typeof userId != "undefined") {
+      applicationUpdateObj.user_id = userId;
+    }
+
+    if (createdAt) {
+      if (isNaN(Date.parse(createdAt))) {
+        createdAt = now;
+      }
+      applicationUpdateObj.created_at = createdAt;
+    }
+
+    if (isNaN(Date.parse(updatedAt))) {
+      applicationUpdateObj.updated_at = now;
+    }
+
+    if (isQrGenerated) {
+      if (typeof isQrGenerated != "boolean") {
+        isQrGenerated = false;
+      }
+      applicationUpdateObj.is_qr_generated = isQrGenerated;
+    }
+
+    if (qrGeneratedAt) {
+      if (isNaN(Date.parse(qrGeneratedAt))) {
+        qrGeneratedAt = now;
+      }
+      applicationUpdateObj.qr_generated_at = qrGeneratedAt;
+    }
+
+    if (isApproved) {
+      if (typeof isApproved != "boolean") {
+        isApproved = false;
+      }
+      applicationUpdateObj.is_approved = isApproved;
+    }
+
+    if (isCanceled) {
+      if (typeof isCanceled != "boolean") {
+        isCanceled = false;
+      }
+      applicationUpdateObj.is_canceled = isCanceled;
+    }
+
+    if (qrString) {
+      if (typeof qrString != "string") {
+        qrString = null;
+      }
+      applicationUpdateObj.qr_string = qrString;
+    }
+
+    if (cancellationReason) {
+      if (typeof cancellationReason != "string") {
+        cancellationReason = null;
+      }
+      applicationUpdateObj.cancellation_reason = cancellationReason;
+    }
+
+    const [updatedApplication] = await knex("APPLICATIONS")
+      .where({ id: applicationId })
+      .update(applicationUpdateObj)
+      .returning("*");
+
+    if (typeof activityObj == "undefined" || !activityObj) {
+      activityObj = await knex("ACTIVITIES")
+        .where({ id: updatedApplication.activity_id })
+        .select("*")
+        .first();
+    }
+
+    const activitySemesterObj = await knex("SEMESTERS")
+      .where({ id: activityObj.semester_id })
+      .select("*")
+      .first();
+
+    const companyObj = await getCompany(activityObj.company_id);
+
+    const applicationRes = {
+      id: updatedApplication.id,
+      user: {
+        id: userObj.id,
+        thaiName: userObj.firstNameTh + " " + userObj.lastNameTh,
+        studentId: userObj.studentId,
+      },
+      activity: {
+        id: activityObj.id,
+        name: activityObj.name,
+        company: {
+          id: companyObj.id,
+          name: companyObj.companyNameTh,
+          logoUrl: companyObj.logoUrl,
+        },
+        semester: {
+          year: activitySemesterObj.year,
+          semester: activitySemesterObj.semester,
+        },
+        date: activityObj.date,
+      },
+      createdAt: updatedApplication.created_at,
+      updatedAt: updatedApplication.updated_at,
+      isQrGenerated: updatedApplication.is_qr_generated,
+      qrString: updatedApplication.qr_string,
+      qrGeneratedAt: updatedApplication.qr_generated_at,
+      isApproved: updatedApplication.is_approved,
+      isCanceled: updatedApplication.is_canceled,
+      cancellationReason: updatedApplication.cancellation_reason,
+    };
+
+    return res.status(200).json({
+      success: true,
+      application: applicationRes,
+    });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ message: "An error occurred.", error: error.message });
+  }
+};
