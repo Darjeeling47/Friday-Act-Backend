@@ -79,6 +79,7 @@ module.exports = async (req, res) => {
             location,
             max_participants: maxParticipants,
             speaker,
+            updated_at: new Date()
         }
 
         // check if there is body data is undefined
