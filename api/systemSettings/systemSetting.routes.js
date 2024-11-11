@@ -8,7 +8,7 @@ const getSystemSetting = require('./getSystemSettings');
 const updateSystemSetting = require('./updateSystemSetting');
 
 // get system setting
-systemRoute.get('/', versionMiddleware(1), getSystemSetting.v1);
+systemRoute.get('/', versionMiddleware(1), protect, getSystemSetting.v1);
 
 // update system setting
 systemRoute.put('/', versionMiddleware(1), protect, authorize('applicationAdmin'), updateSystemSetting.v1);
