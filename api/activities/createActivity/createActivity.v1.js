@@ -76,7 +76,7 @@ module.exports = async (req, res) => {
             await fs.writeFile(posterPath, poster)
 
             // Update the activity with the poster url
-            await knex('ACTIVITIES').where('id', activity[0].id).update({ poster_url: posterUrl })
+            activity = await knex('ACTIVITIES').where('id', activity[0].id).update({ poster_url: posterUrl }).returning('*')
         } else {
             // get semester id
             let semester = await knex('SEMESTERS').where('start_date', '<=', date).andWhere('end_date', '>=', date).first()
