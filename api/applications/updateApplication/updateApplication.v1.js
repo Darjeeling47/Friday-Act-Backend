@@ -1,8 +1,16 @@
 const { getStudentData } = require("../../../utils/getStudentData");
+const knex = require("knex")(require("../../../knexfile").development);
 
 module.exports = async (req, res, next) => {
   try {
     const applicationId = req.params.id;
+
+    if (applicationId == ":id") {
+      return res.status(404).json({
+        success: false,
+        message: "Undefined Parameter(s)."
+      })
+    }
 
     const {
       userId,
@@ -165,5 +173,10 @@ module.exports = async (req, res, next) => {
       success: true,
       application: applicationRes,
     });
-  } catch {}
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ message: "An error occurred.", error: error.message });
+  }
 };
