@@ -30,7 +30,7 @@ applicationRoute.put(
 applicationRoute.get("/:id", versionMiddleware(1), getApplication.v1);
 
 // Update Application
-applicationRoute.put("/:id", versionMiddleware(1), updateApplication.v1);
+applicationRoute.put("/:id", protect, authorize("applicationAdmin"), versionMiddleware(1), updateApplication.v1);
 
 // Delete Application
 applicationRoute.delete("/:id", protect, authorize("applicationAdmin"), versionMiddleware(1), deleteApplication.v1);

@@ -56,6 +56,12 @@ exports.up = function(knex) {
       table.boolean('is_canceled');
       table.text('cancellation_reason');
       table.foreign('activity_id').references('ACTIVITIES.id');
+    })
+    .createTable('SYSTEM_SETTING', function(table) {
+      table.increments('id').primary();
+      table.string('name').unique();
+      table.string('value');
+      table.string('data_type');
     });
 };
 
@@ -69,5 +75,6 @@ exports.down = function(knex) {
     .dropTableIfExists('ACTIVITY_TAGS')
     .dropTableIfExists('ACTIVITIES')
     .dropTableIfExists('TAGS')
-    .dropTableIfExists('SEMESTERS');
+    .dropTableIfExists('SEMESTERS')
+    .dropTableIfExists('SYSTEM_SETTING');
 };

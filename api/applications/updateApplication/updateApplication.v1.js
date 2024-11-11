@@ -1,4 +1,6 @@
+const { getCompany } = require("../../../utils/getCompany");
 const { getStudentData } = require("../../../utils/getStudentData");
+const knex = require("knex")(require("../../../knexfile").development);
 
 module.exports = async (req, res, next) => {
   try {
@@ -17,6 +19,13 @@ module.exports = async (req, res, next) => {
       cancellationReason,
     } = req.body;
 
+    if (applicationId == ":id") {
+      return res.status(404).json({
+        success: false,
+        message: "Undefined Parameter(s).",
+      });
+    }
+
     const user = req.user;
 
     const now = new Date(Date.now());
@@ -24,24 +33,30 @@ module.exports = async (req, res, next) => {
     let applicationUpdateObj = {};
 
     const applicationObj = await knex("APPLICATIONS")
-    .where({ id: applicationId })
-    .select("*")
-    .first();
+      .where({ id: applicationId })
+      .select("*")
+      .first();
 
     if (!applicationObj) {
       return res.status(404).json({
         success: false,
-        message: "This application is not found."
-      })
+        message: "This application is not found.",
+      });
     }
 
     // Check if user exist
-    const userObj = await getStudentData(applicationObj.user_id)
+    const userObj = await getStudentData(applicationObj.user_id);
+
     // Check if the activity id exist
-    const activityObj = await knex("ACTIVITIES")
-      .where({ id: activityId })
-      .select("*")
-      .first();
+    let activityObj;
+    if (activityId) {
+      activityObj = await knex("ACTIVITIES")
+        .where({ id: activityId })
+        .select("*")
+        .first();
+
+      applicationUpdateObj.activity_id = activityId;
+    }
 
     // skip business logic if the user is admin
     if (!user.isApplicationAdmin) {
@@ -52,15 +67,17 @@ module.exports = async (req, res, next) => {
         });
       }
 
-      if (!activityIdObj) {
+      if (typeof activityId != "undefined" && !activityObj) {
         return res.status(404).json({
           success: false,
           message: "This activity is not found.",
         });
       }
     }
-    applicationUpdateObj.activity_id = activityId;
-    applicationUpdateObj.user_id = userId;
+
+    if (userId || typeof userId != "undefined") {
+      applicationUpdateObj.user_id = userId;
+    }
 
     if (createdAt) {
       if (isNaN(Date.parse(createdAt))) {
@@ -69,11 +86,8 @@ module.exports = async (req, res, next) => {
       applicationUpdateObj.created_at = createdAt;
     }
 
-    if (updatedAt) {
-      if (isNaN(Date.parse(updatedAt))) {
-        updatedAt = now;
-      }
-      applicationUpdateObj.updated_at = updatedAt;
+    if (isNaN(Date.parse(updatedAt))) {
+      applicationUpdateObj.updated_at = now;
     }
 
     if (isQrGenerated) {
@@ -118,12 +132,19 @@ module.exports = async (req, res, next) => {
       applicationUpdateObj.cancellation_reason = cancellationReason;
     }
 
-    const updatedApplication = await knex("APPLICATIONS")
+    const [updatedApplication] = await knex("APPLICATIONS")
       .where({ id: applicationId })
       .update(applicationUpdateObj)
       .returning("*");
 
-      const activitySemesterObj = await knex("SEMESTER")
+    if (typeof activityObj == "undefined" || !activityObj) {
+      activityObj = await knex("ACTIVITIES")
+        .where({ id: updatedApplication.activity_id })
+        .select("*")
+        .first();
+    }
+
+    const activitySemesterObj = await knex("SEMESTERS")
       .where({ id: activityObj.semester_id })
       .select("*")
       .first();
@@ -165,5 +186,10 @@ module.exports = async (req, res, next) => {
       success: true,
       application: applicationRes,
     });
-  } catch {}
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ message: "An error occurred.", error: error.message });
+  }
 };
