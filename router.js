@@ -9,6 +9,7 @@ router.use('/api/:version/activities', api.activities);
 router.use('/api/:version/setting/system', api.systemSettings);
 
 router.use('/image/activities/poster', express.static(path.join(__dirname, 'image', 'activities', 'poster')));
+router.use('/api/:version/applications', api.application)
 
 router.get('/', (req, res) => {
   res.send('main page')
