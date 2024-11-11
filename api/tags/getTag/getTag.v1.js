@@ -8,7 +8,7 @@ module.exports = async (req, res) => {
     const tag = await knex('TAGS').where({ id }).first();
 
     if (!tag) {
-      return res.status(404).json({ message: "This tag is not found." });
+      return res.status(404).json({ success: false, message: "This tag is not found." });
     }
 
     return res.status(200).json({
@@ -16,6 +16,6 @@ module.exports = async (req, res) => {
       tag: tag
     });
   } catch (error) {
-    return res.status(500).json({ message: "An error occurred.", error: error.message });
+    return res.status(500).json({ success: false, message: "An error occurred.", error: error.message });
   }
 }

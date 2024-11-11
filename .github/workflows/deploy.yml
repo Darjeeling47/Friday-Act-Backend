@@ -23,6 +23,7 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           cd Friday-Act-Backend/ &&
+          git reset --hard HEAD &&
           git pull origin main &&
           npm install &&
           /root/.nvm/versions/node/v23.0.0/bin/pm2 restart all
