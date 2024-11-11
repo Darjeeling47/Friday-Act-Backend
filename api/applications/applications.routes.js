@@ -53,6 +53,6 @@ applicationRoute.put(
 applicationRoute.post("/", protect, authorize("applicationAdmin"), versionMiddleware(1), createApplication.v1);
 
 // Get Application
-applicationRoute.get("/", versionMiddleware(1), getApplication.v1);
+applicationRoute.get("/", protect, authorize("applicationAdmin"), versionMiddleware(1), getApplication.v1);
 
 module.exports = applicationRoute;

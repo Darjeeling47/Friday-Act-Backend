@@ -1,3 +1,5 @@
+const { getStudentData } = require("../../../utils/getStudentData");
+
 const knex = require("knex")(require("../../../knexfile").development);
 
 module.exports = async (req, res, next) => {
@@ -16,17 +18,17 @@ module.exports = async (req, res, next) => {
       });
     }
 
-    const userObj = null;
+    const userObj = await getStudentData(application.user_id);
 
     const activityObj = await knex("ACTIVITIES")
-      .where({ id: activityId })
+      .where({ id: application.activity_id })
       .select("*")
       .first();
 
     const applicationRes = {
-      id: insertedApplication.id,
+      id: application.id,
       user: {
-        id: userObj.id,
+        id: userObj.studentId,
         thaiName: userObj.firstNameTh + " " + userObj.lastNameTh,
         studentId: userObj.studentId,
       },
