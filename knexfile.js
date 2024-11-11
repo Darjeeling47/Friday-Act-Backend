@@ -14,7 +14,7 @@ module.exports = {
       password: process.env.DATABASE_USER_PASSWORD,
       database: process.env.DATABASE_NAME,
       timezone: "UTC",
-
+      ssl: { rejectUnauthorized: false }
     },
     pool: { min: parseInt(process.env.DATABASE_POOL_MIN), max: parseInt(process.env.DATABASE_POOL_MAX) },
     acquireConnectionTimeout: 10000,
