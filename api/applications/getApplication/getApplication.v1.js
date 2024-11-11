@@ -45,7 +45,7 @@ module.exports = async (req, res, next) => {
       success: true,
       application: applicationRes,
     });
-  } catch {
+  } catch (error) {
     console.log(error);
     return res
       .status(500)
