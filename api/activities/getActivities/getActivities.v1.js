@@ -5,7 +5,19 @@ const { getCompany } = require('../../../utils/getCompany');
 
 module.exports = async (req, res) => {
     try {
-        const { search = '', page = 1, limit = 25 } = req.query;
+        let { search = '', page = 1, limit = 25 } = req.query;
+
+        // get total items
+        let totalItems = await knex('ACTIVITIES').count('id as total').first();
+        totalItems = totalItems.total;
+        totalItems = parseInt(totalItems);
+
+        if (page > Math.ceil(totalItems / limit)) {
+            page = Math.ceil(totalItems / limit);
+        }
+
+        // get pagination
+        const pagination = getPagination(page, limit, totalItems);
 
         // create query
         let query = knex('ACTIVITIES');
@@ -33,14 +45,6 @@ module.exports = async (req, res) => {
 
         // Get activities
         const activities = await query.select('ACTIVITIES.*');
-
-        // get total items
-        let totalItems = await knex('ACTIVITIES').count('id as total').first();
-        totalItems = totalItems.total;
-        totalItems = parseInt(totalItems);
-
-        // get pagination
-        const pagination = getPagination(page, limit, totalItems);
 
         // get currentParticipants
         for (const activity of activities) {
@@ -125,6 +129,10 @@ module.exports = async (req, res) => {
 function getPagination(page, limit, totalItems) {
     const pageLimit = parseInt(limit);
     let pageNum = parseInt(page);
+
+    if (pageNum > Math.ceil(totalItems / limit)) {
+        pageNum = Math.ceil(totalItems / limit);
+    }
 
     let pagination = {
         now: pageNum,
