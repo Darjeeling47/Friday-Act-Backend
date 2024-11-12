@@ -35,7 +35,9 @@ module.exports = async (req, res) => {
         const activities = await query.select('ACTIVITIES.*');
 
         // get total items
-        const totalItems = activities.length;
+        let totalItems = await knex('ACTIVITIES').count('id as total').first();
+        totalItems = totalItems.total;
+        totalItems = parseInt(totalItems);
 
         // get pagination
         const pagination = getPagination(page, limit, totalItems);
@@ -121,19 +123,17 @@ module.exports = async (req, res) => {
 }
 
 function getPagination(page, limit, totalItems) {
-    const offset = (page - 1) * limit;
-    const pageLimit = limit;
-    const pageNum = page;
+    const pageLimit = parseInt(limit);
+    let pageNum = parseInt(page);
 
-    return {
-        pagination: {
-            now: pageNum,
-            last: Math.ceil(totalItems / limit),
-            next: pageNum < Math.ceil(totalItems / limit) ? pageNum + 1 : null,
-            prev: pageNum > 1 ? pageNum - 1 : null,
-            limit: pageLimit
-        }
+    let pagination = {
+        now: pageNum,
+        last: Math.ceil(totalItems / limit),
+        next: pageNum < Math.ceil(totalItems / limit) ? pageNum + 1 : null,
+        prev: pageNum > 1 ? pageNum - 1 : null,
+        limit: pageLimit
     };
+    return pagination;
 }
 
 // Helper for applying filters
