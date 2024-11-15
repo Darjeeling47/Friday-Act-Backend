@@ -17,7 +17,7 @@ const approveAttendanceCheck = require("./approveAttendanceCheck");
 const { protect, authorize } = require("../../middleware/auth");
 
 // Cancel Application
-applicationRoute.put("/:id/cancel", versionMiddleware(1), cancelApplication.v1);
+applicationRoute.put("/:id/cancel", protect, versionMiddleware(1), cancelApplication.v1);
 
 // Request Attendance Check
 applicationRoute.put(
@@ -30,10 +30,10 @@ applicationRoute.put(
 applicationRoute.get("/:id", versionMiddleware(1), getApplication.v1);
 
 // Update Application
-applicationRoute.put("/:id", versionMiddleware(1), updateApplication.v1);
+applicationRoute.put("/:id", protect, authorize("applicationAdmin"), versionMiddleware(1), updateApplication.v1);
 
 // Delete Application
-applicationRoute.delete("/:id", versionMiddleware(1), deleteApplication.v1);
+applicationRoute.delete("/:id", protect, authorize("applicationAdmin"), versionMiddleware(1), deleteApplication.v1);
 
 // Get Application From QR String
 applicationRoute.get(

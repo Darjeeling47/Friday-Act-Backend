@@ -5,9 +5,19 @@ const { getCompany } = require('../../../utils/getCompany');
 
 module.exports = async (req, res) => {
     try {
-        const { search = '', page = 1, limit = 25 } = req.query;
+        let { search = '', page = 1, limit = 25 } = req.query;
 
-        const { limit: pageLimit, offset, pageNum } = getPagination(page, limit);
+        // get total items
+        let totalItems = await knex('ACTIVITIES').count('id as total').first();
+        totalItems = totalItems.total;
+        totalItems = parseInt(totalItems);
+
+        if (page > Math.ceil(totalItems / limit)) {
+            page = Math.ceil(totalItems / limit);
+        }
+
+        // get pagination
+        const pagination = getPagination(page, limit, totalItems);
 
         // create query
         let query = knex('ACTIVITIES');
@@ -31,7 +41,7 @@ module.exports = async (req, res) => {
         query = applySort(query, req.query);
 
         // Apply pagination
-        query = query.limit(pageLimit).offset(offset);
+        query = query.limit(limit).offset((page - 1) * limit);
 
         // Get activities
         const activities = await query.select('ACTIVITIES.*');
@@ -89,10 +99,7 @@ module.exports = async (req, res) => {
                 success: true,
                 count: activities.length,
                 dates: groupActivities,
-                pagination: {
-                    currentPage: pageNum,
-                    pageLimit: pageLimit,
-                }
+                pagination
             });
         }
 
@@ -101,10 +108,7 @@ module.exports = async (req, res) => {
                 success: true,
                 count: activities.length,
                 semesters: groupActivities,
-                pagination: {
-                    currentPage: pageNum,
-                    pageLimit: pageLimit,
-                }
+                pagination
             });
         }
 
@@ -112,11 +116,8 @@ module.exports = async (req, res) => {
         return res.status(200).json({
             success: true,
             count: activities.length,
-            groupActivities,
-            pagination: {
-                currentPage: pageNum,
-                pageLimit: pageLimit,
-            }
+            activities : groupActivities,
+            pagination
         });
 
     } catch (error) {
@@ -125,15 +126,22 @@ module.exports = async (req, res) => {
     }
 }
 
-function getPagination(page, limit) {
+function getPagination(page, limit, totalItems) {
+    const pageLimit = parseInt(limit);
+    let pageNum = parseInt(page);
 
-    // Parse the page number and limit from the query string
-    const pageNum = Math.max(parseInt(page) || 1, 1);
-    const pageLimit = Math.min(parseInt(limit) || 25, 100);
-    const offset = (pageNum - 1) * pageLimit;
+    if (pageNum > Math.ceil(totalItems / limit)) {
+        pageNum = Math.ceil(totalItems / limit);
+    }
 
-    return { limit: pageLimit, offset, pageNum };
-
+    let pagination = {
+        now: pageNum,
+        last: Math.ceil(totalItems / limit),
+        next: pageNum < Math.ceil(totalItems / limit) ? pageNum + 1 : null,
+        prev: pageNum > 1 ? pageNum - 1 : null,
+        limit: pageLimit
+    };
+    return pagination;
 }
 
 // Helper for applying filters

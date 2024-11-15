@@ -18,12 +18,20 @@ module.exports = async (req, res, next) => {
       });
     }
 
-    const userObj = await getStudentData(application.user_id);
+    const userArray = await getStudentData([application.user_id]);
+    const userObj = userArray.items.at(0)
 
     const activityObj = await knex("ACTIVITIES")
       .where({ id: application.activity_id })
       .select("*")
       .first();
+
+      const activitySemesterObj = await knex("SEMESTERS")
+      .where({ id: activityObj.semester_id })
+      .select("*")
+      .first();
+
+    const companyObj = await getCompany(activityIdObj.company_id);
 
     const applicationRes = {
       id: application.id,
@@ -32,7 +40,20 @@ module.exports = async (req, res, next) => {
         thaiName: userObj.firstNameTh + " " + userObj.lastNameTh,
         studentId: userObj.studentId,
       },
-      activity: activityObj, // to remove unused attribute
+      activity: {
+        id: activityObj.id,
+        name: activityObj.name,
+        company: {
+          id: companyObj.id,
+          name: companyObj.companyNameTh,
+          logoUrl: companyObj.logoUrl,
+        },
+        semester: {
+          year: activitySemesterObj.year,
+          semester: activitySemesterObj.semester,
+        },
+        date: activityObj.date,
+      },
       createdAt: application.created_at, // ask if use inserted value
       updatedAt: application.updated_at,
       isQrGenerated: application.is_qr_generated,
