@@ -45,7 +45,8 @@ module.exports = async (req, res, next) => {
     }
 
     // Check if user exist
-    const userObj = await getStudentData([applicationObj.user_id]);
+    const userArray = await getStudentData([application.user_id]);
+    const userObj = userArray.items.at(0)
 
     // Check if the activity id exist
     let activityObj;

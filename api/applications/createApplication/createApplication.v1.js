@@ -23,30 +23,20 @@ module.exports = async (req, res, next) => {
     const now = new Date(Date.now());
 
     // Check if user exist
-    const userObj = await getStudentData([userId]);
+    const userArray = await getStudentData([userId]);
+    const userObj = userArray.items.at(0);
 
-    
     // Check if the activity id exist
     const activityIdObj = await knex("ACTIVITIES")
       .where({ id: activityId })
       .select("*")
       .first();
 
-    // skip business logic if the user is admin
-    if (!user.isApplicationAdmin) {
-/*       if (!userObj) {
-        return res.status(404).json({
-          success: false,
-          message: "This user is not found.",
-        });
-      } */
-
-      if (!activityIdObj) {
-        return res.status(404).json({
-          success: false,
-          message: "This activity is not found.",
-        });
-      }
+    if (!activityIdObj) {
+      return res.status(404).json({
+        success: false,
+        message: "This activity is not found.",
+      });
     }
 
     if (typeof createdAt == "undefined" || isNaN(Date.parse(createdAt))) {
@@ -109,8 +99,8 @@ module.exports = async (req, res, next) => {
     if (!insertedApplication) {
       return res.status(500).json({
         success: false,
-        message: "Internal database malfunction."
-      })
+        message: "Internal database malfunction.",
+      });
     }
 
     const activitySemesterObj = await knex("SEMESTERS")
