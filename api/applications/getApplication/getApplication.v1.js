@@ -18,7 +18,7 @@ module.exports = async (req, res, next) => {
       });
     }
 
-    const userObj = await getStudentData(application.user_id);
+    const userObj = await getStudentData([application.user_id]);
 
     const activityObj = await knex("ACTIVITIES")
       .where({ id: application.activity_id })

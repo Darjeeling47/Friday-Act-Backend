@@ -23,7 +23,7 @@ module.exports = async (req, res, next) => {
     const now = new Date(Date.now());
 
     // Check if user exist
-    const userObj = await getStudentData(userId);
+    const userObj = await getStudentData([userId]);
 
     
     // Check if the activity id exist

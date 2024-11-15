@@ -36,7 +36,7 @@ module.exports = async (req, res, next) => {
       });
     }
 
-    const userObj = await getStudentData(application.user_id);
+    const userObj = await getStudentData([application.user_id]);
 
     if (user.studentId !== application.user_id && user.role !== 'applicationAdmin') {
       return res.status(401).json({
