@@ -21,7 +21,7 @@ module.exports = async (req, res, next) => {
 
   // Validate date range
   if (startDate && endDate && new Date(startDate) >= new Date(endDate)) {
-    return res.status(400).json({ message: "The startDate must be before the endDate." });
+    return res.status(400).json({ message: "The startDate must be before the endDate.", success: false });
   }
 
   try {
@@ -30,6 +30,14 @@ module.exports = async (req, res, next) => {
 
     if (!existingSemester) {
       return res.status(404).json({ message: "This semester is not found.", success: false });
+    }
+
+    // check if the start date is before the end date
+    if (startDate && !endDate && new Date(startDate) >= new Date(existingSemester.end_date)) {
+      return res.status(400).json({ message: "The startDate must be before the endDate.", success: false });
+    }
+    if (endDate && !startDate && new Date(existingSemester.start_date) >= new Date(endDate)) {
+      return res.status(400).json({ message: "The startDate must be before the endDate.", success: false });
     }
 
     // check if the semester already exists
