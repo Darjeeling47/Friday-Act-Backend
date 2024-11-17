@@ -24,6 +24,7 @@ exports.getIDPaccessToken = async function getIDPaccessToken() {
     }
 
     const data = await response.json();
+    console.log(data);
 
     return data.access_token;
 
