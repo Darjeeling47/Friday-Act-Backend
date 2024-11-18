@@ -1,7 +1,7 @@
 const crypto = require("node:crypto");
 
 module.exports = async (req, res, next) => {
-  const { applicationId } = req.params;
+  const { applicationId} = req.params;
 
   const user = req.user;
 
@@ -20,7 +20,7 @@ module.exports = async (req, res, next) => {
   }
 
   const activityObj = await knex("ACTIVITIES")
-    .where({ id: activityId })
+    .where({ id: applicationObj.activity_id })
     .select("*")
     .first();
 
@@ -57,58 +57,54 @@ module.exports = async (req, res, next) => {
     });
   }
 
-  const attendanceCheckOpenHour = await knex("SYSTEM_SETTING")
-    .where("name", "attendance_check_open_hour ")
+  // Retrieve attendance check open and close hours from SYSTEM_SETTING
+  const attendanceCheckOpenHourSetting = await knex("SYSTEM_SETTING")
+    .where("name", "attendance_check_open_hour")
     .first();
-
-  const attendanceCheckCloseHour = await knex("SYSTEM_SETTING")
+  const attendanceCheckCloseHourSetting = await knex("SYSTEM_SETTING")
     .where("name", "attendance_check_close_hour")
     .first();
-
-  const activityStartMilliSecondsSinceMidNight =
-    (activityObj.start_time.slice(0, 2) * 60 +
-      activityObj.start_time.slice(3, 5)) *
-    60 *
-    1000;
-  const activityEndMilliSecondsSinceMidNight =
-    (activityObj.end_time.slice(0, 2) * 60 + activityObj.end_time.slice(3, 5)) *
-    60 *
-    1000;
-  const todayMilliSecondsSinceMidNight = now % 86400000;
-
-  const timeAtAttendanceCheckOpenHour =
-    activityStartMilliSecondsSinceMidNight -
-    attendanceCheckOpenHour * 60 * 60 * 1000;
-
-  const timeAtAttendanceCheckCloseHour =
-    activityEndMilliSecondsSinceMidNight +
-    attendanceCheckCloseHour * 60 * 60 * 1000;
-
-  if (now > Date.parse(activityObj.date) + 8640000) {
+  
+  const attendanceCheckOpenHour = parseFloat(attendanceCheckOpenHourSetting.value);
+  const attendanceCheckCloseHour = parseFloat(attendanceCheckCloseHourSetting.value);
+  
+  // Parse activity date and times to construct Date objects
+  const activityDate = new Date(activityObj.date);
+  
+  // Activity start datetime
+  const [startHour, startMinute] = activityObj.start_time.split(":").map(Number);
+  const activityStartDateTime = new Date(activityDate);
+  activityStartDateTime.setHours(startHour, startMinute, 0, 0);
+  
+  // Activity end datetime
+  const [endHour, endMinute] = activityObj.end_time.split(":").map(Number);
+  const activityEndDateTime = new Date(activityDate);
+  activityEndDateTime.setHours(endHour, endMinute, 0, 0);
+  
+  // Calculate attendance check open and close times
+  const attendanceCheckOpenTime = new Date(activityStartDateTime);
+  attendanceCheckOpenTime.setHours(attendanceCheckOpenTime.getHours() - attendanceCheckOpenHour);
+  
+  const attendanceCheckCloseTime = new Date(activityEndDateTime);
+  attendanceCheckCloseTime.setHours(attendanceCheckCloseTime.getHours() + attendanceCheckCloseHour);
+  
+  // Validate attendance check time window
+  if (now < attendanceCheckOpenTime) {
+    return res.status(409).json({
+      success: false,
+      message: "This activity attendance checking is not open yet.",
+    });
+  }
+  
+  if (now > attendanceCheckCloseTime) {
     return res.status(409).json({
       success: false,
       message: "This activity attendance checking is already closed.",
     });
   }
 
-  if (now > Date.parse(activityObj.date)) {
-    if (todayMilliSecondsSinceMidNight > timeAtAttendanceCheckCloseHour) {
-      return res.status(409).json({
-        success: false,
-        message: "This activity attendance checking is already closed.",
-      });
-    } else if (todayMilliSecondsSinceMidNight < timeAtAttendanceCheckOpenHour) {
-      return res.status(409).json({
-        success: false,
-        message: "This activity attendance checking is not open yet.",
-      });
-    }
-  }
-
   if (!applicationObj.is_qr_generated) {
-    const qrData = `${applicationId}-${applicationObj.user_id}-${applicationObj.activity_id}-${now}`;
-    const qrHashString = crypto.hash("md5", qrHashString);
-    const qrString = `${qrData}-${qrHashString}`;
+    const qrString = `/admin/application/check/${applicationId}`;
     const applicationUpdateObj = {
       updated_at: now,
       is_qr_generated: true,
