@@ -18,9 +18,7 @@ exports.getIDPaccessToken = async function getIDPaccessToken() {
       },
       body: JSON.stringify(bodyData),
     });
-    
     const data = await response.json();
-    console.log(data);
 
     if (!response.ok) {
       throw new Error("Unable to fetch information.");

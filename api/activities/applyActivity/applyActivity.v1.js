@@ -71,12 +71,13 @@ module.exports = async (req, res) => {
       return res.status(409).json({
         success: false,
         message:
-          "This activity is fully registered. Please apply for other activities or try again when someone has canceled.",
+          "This activity registration is closed. Please apply for other activities or try again when someone has canceled.",
       });
     }
 
     const activityParticipantArr = await knex("APPLICATIONS")
       .where("activity_id", activityId)
+      .andWhere("is_canceled", false)
       .select("id");
 
     if (activityParticipantArr.length >= activityObj.max_participants) {

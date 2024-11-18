@@ -6,7 +6,7 @@ module.exports = async (req, res, next) => {
   try {
     const applicationId = req.params.id;
 
-    const {
+    let {
       userId,
       activityId,
       createdAt,
@@ -27,9 +27,7 @@ module.exports = async (req, res, next) => {
     }
 
     const user = req.user;
-
     const now = new Date(Date.now());
-
     let applicationUpdateObj = {};
 
     const applicationObj = await knex("APPLICATIONS")
@@ -44,22 +42,40 @@ module.exports = async (req, res, next) => {
       });
     }
 
-    // Check if user exist
-    const userArray = await getStudentData([application.user_id]);
-    const userObj = userArray.items.at(0)
+    // Get current user data
+    const userArray = await getStudentData([applicationObj.user_id]);
+    const userObj = userArray.items.at(0);
 
-    // Check if the activity id exist
+    // Validate userId
+    if (typeof userId !== "undefined") {
+      const newUserArray = await getStudentData([userId]);
+      const newUserObj = newUserArray.items.at(0);
+      if (!newUserObj) {
+        return res.status(404).json({
+          success: false,
+          message: "This user is not found.",
+        });
+      }
+      applicationUpdateObj.user_id = userId;
+    }
+
+    // Validate activityId
     let activityObj;
-    if (activityId) {
+    if (typeof activityId !== "undefined") {
       activityObj = await knex("ACTIVITIES")
         .where({ id: activityId })
         .select("*")
         .first();
-
+      if (!activityObj) {
+        return res.status(404).json({
+          success: false,
+          message: "This activity is not found.",
+        });
+      }
       applicationUpdateObj.activity_id = activityId;
     }
 
-    // skip business logic if the user is admin
+    // Skip business logic if the user is admin
     if (!user.isApplicationAdmin) {
       if (!userObj) {
         return res.status(404).json({
@@ -67,70 +83,65 @@ module.exports = async (req, res, next) => {
           message: "This user is not found.",
         });
       }
-
-      if (typeof activityId != "undefined" && !activityObj) {
-        return res.status(404).json({
-          success: false,
-          message: "This activity is not found.",
-        });
-      }
     }
 
-    if (userId || typeof userId != "undefined") {
-      applicationUpdateObj.user_id = userId;
-    }
-
-    if (createdAt) {
+    // Handle createdAt
+    if (typeof createdAt !== "undefined") {
       if (isNaN(Date.parse(createdAt))) {
         createdAt = now;
+      } else {
+        createdAt = new Date(createdAt);
       }
-      applicationUpdateObj.created_at = createdAt;
+    } else {
+      createdAt = now;
     }
+    applicationUpdateObj.created_at = createdAt;
 
-    if (isNaN(Date.parse(updatedAt))) {
-      applicationUpdateObj.updated_at = now;
-    }
-
-    if (isQrGenerated) {
-      if (typeof isQrGenerated != "boolean") {
-        isQrGenerated = false;
+    // Handle updatedAt
+    if (typeof updatedAt !== "undefined") {
+      if (isNaN(Date.parse(updatedAt))) {
+        updatedAt = now;
+      } else {
+        updatedAt = new Date(updatedAt);
       }
-      applicationUpdateObj.is_qr_generated = isQrGenerated;
+    } else {
+      updatedAt = now;
+    }
+    applicationUpdateObj.updated_at = updatedAt;
+
+    // Handle isQrGenerated
+    if (typeof isQrGenerated !== "undefined") {
+      applicationUpdateObj.is_qr_generated = Boolean(isQrGenerated);
     }
 
-    if (qrGeneratedAt) {
+    // Handle qrString
+    if (typeof qrString !== "undefined") {
+      applicationUpdateObj.qr_string = String(qrString);
+    }
+
+    // Handle qrGeneratedAt
+    if (typeof qrGeneratedAt !== "undefined") {
       if (isNaN(Date.parse(qrGeneratedAt))) {
         qrGeneratedAt = now;
+      } else {
+        qrGeneratedAt = new Date(qrGeneratedAt);
       }
       applicationUpdateObj.qr_generated_at = qrGeneratedAt;
     }
 
-    if (isApproved) {
-      if (typeof isApproved != "boolean") {
-        isApproved = false;
-      }
-      applicationUpdateObj.is_approved = isApproved;
+    // Handle isApproved
+    if (typeof isApproved !== "undefined") {
+      applicationUpdateObj.is_approved = Boolean(isApproved);
     }
 
-    if (isCanceled) {
-      if (typeof isCanceled != "boolean") {
-        isCanceled = false;
-      }
-      applicationUpdateObj.is_canceled = isCanceled;
+    // Handle isCanceled
+    if (typeof isCanceled !== "undefined") {
+      applicationUpdateObj.is_canceled = Boolean(isCanceled);
     }
 
-    if (qrString) {
-      if (typeof qrString != "string") {
-        qrString = null;
-      }
-      applicationUpdateObj.qr_string = qrString;
-    }
-
-    if (cancellationReason) {
-      if (typeof cancellationReason != "string") {
-        cancellationReason = null;
-      }
-      applicationUpdateObj.cancellation_reason = cancellationReason;
+    // Handle cancellationReason
+    if (typeof cancellationReason !== "undefined") {
+      applicationUpdateObj.cancellation_reason = String(cancellationReason);
     }
 
     const [updatedApplication] = await knex("APPLICATIONS")
@@ -138,7 +149,7 @@ module.exports = async (req, res, next) => {
       .update(applicationUpdateObj)
       .returning("*");
 
-    if (typeof activityObj == "undefined" || !activityObj) {
+    if (!activityObj) {
       activityObj = await knex("ACTIVITIES")
         .where({ id: updatedApplication.activity_id })
         .select("*")
@@ -156,7 +167,7 @@ module.exports = async (req, res, next) => {
       id: updatedApplication.id,
       user: {
         id: userObj.id,
-        thaiName: userObj.firstNameTh + " " + userObj.lastNameTh,
+        thaiName: `${userObj.firstNameTh} ${userObj.lastNameTh}`,
         studentId: userObj.studentId,
       },
       activity: {
@@ -188,9 +199,11 @@ module.exports = async (req, res, next) => {
       application: applicationRes,
     });
   } catch (error) {
-    console.log(error);
-    return res
-      .status(500)
-      .json({ message: "An error occurred.", error: error.message });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred.",
+      error: error.message,
+    });
   }
 };

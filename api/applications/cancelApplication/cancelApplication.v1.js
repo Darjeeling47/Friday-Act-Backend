@@ -90,6 +90,16 @@ module.exports = async (req, res, next) => {
       todayMilliSecondsSinceMidNight -
       lastCancellationCutoffHour * 60 * 60 * 1000;
 
+      console.log("now: ", now);
+      console.log("nowDateTime: ", nowDateTime);
+      console.log("standardCancellationCutoffHour: ", standardCancellationCutoffHour);
+      console.log( "lastCancellationCutoffHour: " , lastCancellationCutoffHour);
+      console.log("activityMilliSecondsSinceMidNight: ", activityMilliSecondsSinceMidNight);
+      console.log("todayMilliSecondsSinceMidNight: ", todayMilliSecondsSinceMidNight);
+      console.log("timeAtStandardCancellationCutoffMilliSecond: ", timeAtStandardCancellationCutoffMilliSecond);
+      console.log("timeAtLastCancellationCutoffMilliSecond: ", timeAtLastCancellationCutoffMilliSecond);
+
+
     if (now > Date.parse(activityObj.date) + 8640000) {
       return res.status(409).json({
         success: false,

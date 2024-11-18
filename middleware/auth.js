@@ -72,7 +72,6 @@ exports.gate = async (req, res, next) => {
       const userData = await getUserInfoFromToken(token);
 
       req.user = userData;
-
       next();
     }
   } catch (error) {
