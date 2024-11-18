@@ -1,5 +1,5 @@
 const knex = require('knex')(require('../../../knexfile').development);
-const getStudentData = require('../../../utils/getStudentData');
+const {getStudentData} = require('../../../utils/getStudentData');
 
 module.exports = async (req, res) => {
     try {
@@ -19,17 +19,16 @@ module.exports = async (req, res) => {
 
         // Get the participants of the activity
         const participants = await knex('APPLICATIONS').where('activity_id', id).select('user_id');
-
+        console.log(participants);
         // check if the participants is empty
         if (!participants.length) {
             return res.status(200).json({ success: true, count: 0, participants: [] });
         }
 
-        // Get the student data of the participant
-        let studentData = await Promise.all(participants.map(async participant => {
-            return await getStudentData( participant.user_id);
-        }));
-
+        // Get the student data of the participants
+        let studentIds = participants.map(participant => participant.user_id);
+        
+        let studentData = await getStudentData(studentIds);
         studentData = studentData.items;
 
         // serch params for student data
@@ -39,7 +38,7 @@ module.exports = async (req, res) => {
 
         // filter by admission year
         if (req.query.admissionYear) {
-            studentData = studentData.filter(student => student.admissionYear === req.query.admissionYear);
+            studentData = studentData.filter(student => student.admissionYear == req.query.admissionYear);
         }
 
         // return the student data

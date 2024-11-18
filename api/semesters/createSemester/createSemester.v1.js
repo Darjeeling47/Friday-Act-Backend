@@ -5,23 +5,23 @@ module.exports =  async (req, res, next) => {
 
   // Validate required fields
   if (!year || !semester || !startDate || !endDate) {
-    return res.status(400).json({ message: "Some required value is missing." });
+    return res.status(400).json({ message: "Some required value is missing.", success: false });
   }
 
   // Validate year format
   const yearRegex = /^[0-9]{4}$/;
   if (!yearRegex.test(year)) {
-    return res.status(400).json({ message: "The year format is wrong, please provide 4 digit number (0000 - 9999)." });
+    return res.status(400).json({ message: "The year format is wrong, please provide 4 digit number (0000 - 9999).", success: false });
   }
 
   // Validate semester range
   if (semester < 1 || semester > 3) {
-    return res.status(400).json({ message: "The semester must be a number within the range 1 - 3." });
+    return res.status(400).json({ message: "The semester must be a number within the range 1 - 3.", success: false });
   }
 
   // Validate date range
   if (new Date(startDate) >= new Date(endDate)) {
-    return res.status(400).json({ message: "The startDate must be before the endDate." });
+    return res.status(400).json({ message: "The startDate must be before the endDate.", success: false });
   }
 
   try {
@@ -31,7 +31,7 @@ module.exports =  async (req, res, next) => {
       .first();
 
     if (existingSemester) {
-      return res.status(409).json({ message: "This semester is already existed." });
+      return res.status(409).json({ message: "This semester is already existed.", success: false });
     }
 
     // Insert new semester
@@ -44,6 +44,6 @@ module.exports =  async (req, res, next) => {
       semester: newSemester
     });
   } catch (error) {
-    return res.status(500).json({ message: "An error occurred.", error: error.message });
+    return res.status(500).json({ success: false, message: "An error occurred."});
   }
 }
