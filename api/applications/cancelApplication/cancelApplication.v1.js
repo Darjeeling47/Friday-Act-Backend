@@ -65,21 +65,25 @@ module.exports = async (req, res, next) => {
       .first();
 
     // check with standard_cancellation_cutoff_hour
-    const now = Date.now();
+    const now = Date.now() + Number(process.env.TIME_OFFSET_MS);
     const nowDateTime = new Date(now);
-    const standardCancellationCutoffHour = await knex("SYSTEM_SETTING")
+    let standardCancellationCutoffHour = await knex("SYSTEM_SETTING")
       .where("name", "standard_cancellation_cutoff_hour")
       .first();
 
-    const lastCancellationCutoffHour = await knex("SYSTEM_SETTING")
+    standardCancellationCutoffHour = Number(standardCancellationCutoffHour.value)
+
+    let lastCancellationCutoffHour = await knex("SYSTEM_SETTING")
       .where("name", "last_cancellations_cutoff_hour")
       .first();
+
+    lastCancellationCutoffHour = Number(lastCancellationCutoffHour.value)
 
     const activityMilliSecondsSinceMidNight =
       (activityObj.start_time.slice(0, 2) * 60 +
         activityObj.start_time.slice(3,5)) *
       60 *
-      1000;
+      10;
     const todayMilliSecondsSinceMidNight = now % 86400000;
 
     const timeAtStandardCancellationCutoffMilliSecond =
@@ -135,15 +139,18 @@ module.exports = async (req, res, next) => {
       cancellation_reason: cancellationReason,
     };
 
-    const updatedApplication = await knex("APPLICATIONS")
+    let updatedApplication = await knex("APPLICATIONS")
       .where({ id: applicationId })
       .update(applicationObj)
       .returning("*");
 
+    updatedApplication = updatedApplication[0]
+
+    console.log(updatedApplication);
+
     const activitySemesterObj = await knex("SEMESTERS")
       .where({ id: activityObj.semester_id })
       .select("*")
-      .first();
 
     const companyObj = await getCompany(activityObj.company_id);
 
