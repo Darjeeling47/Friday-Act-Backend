@@ -4,8 +4,6 @@ module.exports = async (req, res, next) => {
   try {
     const applicationId = req.params.id;
 
-    console.log(typeof applicationId);
-
     if (!applicationId || typeof applicationId == "undefined" || typeof applicationId != "string") {
       return res.status(404).json({
         success: false,
