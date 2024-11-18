@@ -48,13 +48,13 @@ module.exports = async (req, res) => {
       });
     }
 
-    const now = new Date(Date.now());
+    const now = new Date(Date.now() + process.env.TIME_OFFSET_MS);
 
     const activityMilliSecondsSinceMidNight =
       (activityObj.start_time.slice(0, 2) * 60 +
         activityObj.start_time.slice(3, 5)) *
       60 *
-      1000;
+      10;
 
     const applicationCloseOffHour = await knex("SYSTEM_SETTING")
       .where("name", "application_close_hour")

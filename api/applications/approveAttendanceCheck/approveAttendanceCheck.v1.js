@@ -90,7 +90,7 @@ module.exports = async (req, res, next) => {
     const attendanceCheckCloseHour = settingsMap["attendance_check_close_hour"];
 
     // Time validations
-    const now = Date.now();
+    const now = Date.now() + process.env.TIME_OFFSET_MS;;
     const activityDate = new Date(application.activity_date);
     const [startHour, startMinute] = application.start_time.split(":").map(Number);
     const [endHour, endMinute] = application.end_time.split(":").map(Number);

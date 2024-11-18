@@ -5,7 +5,7 @@ module.exports = async (req, res, next) => {
 
   const user = req.user;
 
-  const now = new Date(Date.now());
+  const now = new Date(Date.now() + process.env.TIME_OFFSET_MS);
 
   let applicationObj = await knex("APPLICATIONS")
     .where({ id: applicationId })
