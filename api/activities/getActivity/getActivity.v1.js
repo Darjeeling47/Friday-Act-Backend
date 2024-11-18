@@ -23,9 +23,11 @@ module.exports = async (req, res) => {
 
         // get lastest application
         if (req.user) {
+            console.log(req.user.studentId);
             const latestApplication = await knex('APPLICATIONS')
                 .where('activity_id', activity.id)
-                .where('user_id', req.user.userId)
+                .where('is_canceled', false)
+                .where('user_id', req.user.studentId)
                 .orderBy('created_at', 'desc')
                 .first();
 
