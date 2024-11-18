@@ -111,7 +111,6 @@ module.exports = async (req, res, next) => {
         const studentDataArray = await getStudentData([application.user_id]);
         const studentData = studentDataArray.items[0];
         const companyData = await getCompany(application.company_id);
-        console.log(application.user_id, studentData);
         return {
           id: application.id,
           user: {
@@ -143,8 +142,6 @@ module.exports = async (req, res, next) => {
         };
       })
     );
-
-    console.log(applicationRes);
 
     // Pagination info
     const pagination = {
