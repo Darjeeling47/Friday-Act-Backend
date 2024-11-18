@@ -17,6 +17,7 @@ module.exports = async (req, res) => {
         // get currentParticipants
         const currentParticipants = await knex('APPLICATIONS')
             .where('activity_id', activity.id)
+            .where('is_canceled', false)
             .count('id as current_participants')
             .first();
 
@@ -50,7 +51,7 @@ module.exports = async (req, res) => {
         const tags = await knex('TAGS').whereIn('id', tagsId.map(tag => tag.tag_id));
         activity.tags = tags;
 
-        return res.status(200).json({ success: true, activity: { ...(convertKeysToCamelCase(activity)), currentParticipants: currentParticipants.current_participants } });
+        return res.status(200).json({ success: true, activity: { ...(convertKeysToCamelCase(activity)), currentParticipants: parseInt(currentParticipants.current_participants) } });
     } catch (error) {
         console.log(error);
         return res.status(500).json({ success: false , message: 'Internal server error.' });

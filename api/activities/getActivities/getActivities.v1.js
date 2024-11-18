@@ -51,6 +51,7 @@ module.exports = async (req, res) => {
         for (const activity of activities) {
             const currentParticipants = await knex('APPLICATIONS')
                 .where('activity_id', activity.id)
+                .where('is_canceled', false)
                 .count('id as current_participants')
                 .first();
 
@@ -59,12 +60,11 @@ module.exports = async (req, res) => {
 
         if (true) {
             // Get user applications
-            console.log(req.user.userId);
             const userApplications = await knex('APPLICATIONS')
                 .where('user_id', req.user.studentId)
+                .where('is_canceled', false)
                 .select('activity_id');
 
-            console.log(userApplications);
             // Add isApplied to each activity
             activities.forEach(activity => {
                 activity.isApplied = userApplications.some(application => application.activity_id == activity.id);

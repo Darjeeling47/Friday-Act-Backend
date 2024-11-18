@@ -19,7 +19,7 @@ module.exports = async (req, res) => {
         }
 
         // Get the participants of the activity
-        const participants = await knex('APPLICATIONS').where('activity_id', id).select('user_id');
+        const participants = await knex('APPLICATIONS').where('activity_id', id).where('is_canceled', false).select('user_id');
         console.log(participants);
         // check if the participants is empty
         if (!participants.length) {
