@@ -53,7 +53,7 @@ module.exports = async (req, res) => {
                 .count('id as current_participants')
                 .first();
 
-            activity.currentParticipants = currentParticipants.current_participants;
+            activity.currentParticipants = parseInt(currentParticipants.current_participants);
         }
 
         if (req.user && req.user.role !== 'applicationAdmin') {
