@@ -2,6 +2,9 @@ const knex = require('knex')(require('../../../knexfile').development);
 const fs = require('fs').promises
 const path = require('path')
 const {convertKeysToCamelCase} = require('../../../utils/toCamel')
+const { getCompany } = require('../../../utils/getCompany');
+
+
 
 module.exports = async (req, res) => {
     try {
@@ -10,9 +13,23 @@ module.exports = async (req, res) => {
         // get the poster buffer file from the request body
         const poster = req.file ? req.file.buffer : null;
 
+        // get company
+        const company = await getCompany(companyId);
+        if (!company) {
+            return res.status(404).json({ message: "This company is not found." });
+        }
+
         // validate required fields
         if (!name || !date || !startTime || !endTime || !maxParticipants || !tags) {
             return res.status(400).json({ message: "Some required value is missing." });
+        }
+
+        if (tags.length < 1 || tags.length > 3) {
+            return res.status(400).json({ message: "The tags must have at least 1 and not more than 3." });
+        }
+
+        if (maxParticipants < 0) {
+            return res.status(400).json({ message: "The max participants must be more than 0." });
         }
 
         // validate date, date must be in the future
