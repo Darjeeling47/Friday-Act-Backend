@@ -65,7 +65,7 @@ module.exports = async (req, res, next) => {
       .first();
 
     // check with standard_cancellation_cutoff_hour
-    const now = Date.now() + process.env.TIME_OFFSET_MS;
+    const now = Date.now() + Number(process.env.TIME_OFFSET_MS);
     const nowDateTime = new Date(now);
     let standardCancellationCutoffHour = await knex("SYSTEM_SETTING")
       .where("name", "standard_cancellation_cutoff_hour")

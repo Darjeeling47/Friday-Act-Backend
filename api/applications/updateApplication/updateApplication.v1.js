@@ -27,7 +27,7 @@ module.exports = async (req, res, next) => {
     }
 
     const user = req.user;
-    const now = new Date(Date.now() + process.env.TIME_OFFSET_MS);
+    const now = new Date(Date.now() + Number(process.env.TIME_OFFSET_MS));
     let applicationUpdateObj = {};
 
     const applicationObj = await knex("APPLICATIONS")
