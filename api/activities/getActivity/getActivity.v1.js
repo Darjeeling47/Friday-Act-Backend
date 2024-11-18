@@ -1,5 +1,6 @@
 const knex = require('knex')(require('../../../knexfile').development);
 const { getCompany } = require('../../../utils/getCompany');
+const {convertKeysToCamelCase} = require('../../../utils/toCamel')
 
 module.exports = async (req, res) => {
     try {
@@ -49,7 +50,7 @@ module.exports = async (req, res) => {
         const tags = await knex('TAGS').whereIn('id', tagsId.map(tag => tag.tag_id));
         activity.tags = tags;
 
-        return res.status(200).json({ success: true, activity: { ...activity, currentParticipants: currentParticipants.current_participants } });
+        return res.status(200).json({ success: true, activity: { ...(convertKeysToCamelCase(activity)), currentParticipants: currentParticipants.current_participants } });
     } catch (error) {
         console.log(error);
         return res.status(500).json({ success: false , message: 'Internal server error.' });

@@ -2,6 +2,7 @@ const knex = require('knex')(require('../../../knexfile').development);
 const { getCompany } = require('../../../utils/getCompany');
 const path = require('path')
 const fs = require('fs').promises
+const { convertKeysToCamelCase } = require('../../../utils/toCamel')
 
 module.exports = async (req, res) => {
     try {
@@ -93,6 +94,7 @@ module.exports = async (req, res) => {
             bodyData.semester_id = semesterId
         }
 
+        console.log(bodyData);
         // update activity
         let activity = await knex('ACTIVITIES').where('id', id).update(bodyData).returning('*')
 
@@ -103,7 +105,7 @@ module.exports = async (req, res) => {
         activity[0].company = company;
 
         //return updated activity
-        return res.json({ success: true, activity: activity[0] });
+        return res.json({ success: true, activity: convertKeysToCamelCase(activity[0]) });
 
 
     } catch (error) {

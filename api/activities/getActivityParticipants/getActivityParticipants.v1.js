@@ -1,5 +1,6 @@
 const knex = require('knex')(require('../../../knexfile').development);
 const {getStudentData} = require('../../../utils/getStudentData');
+const {convertKeysToCamelCase} = require('../../../utils/toCamel')
 
 module.exports = async (req, res) => {
     try {
@@ -42,7 +43,7 @@ module.exports = async (req, res) => {
         }
 
         // return the student data
-        return res.status(200).json({ success: true, count: studentData.length, participants: studentData });
+        return res.status(200).json({ success: true, count: studentData.length, participants: convertKeysToCamelCase(studentData) });
 
         
     } catch (error) {

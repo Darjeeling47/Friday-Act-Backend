@@ -2,6 +2,7 @@ const knex = require('knex')(require('../../../knexfile').development);
 const axios = require('axios');
 const { getCompanies } = require('../../../utils/getCompanies');
 const { getCompany } = require('../../../utils/getCompany');
+const {convertKeysToCamelCase} = require('../../../utils/toCamel')
 
 module.exports = async (req, res) => {
     try {
@@ -81,6 +82,7 @@ module.exports = async (req, res) => {
             // get company
             const company = await getCompany(activity.company_id);
             activity.company = company;
+            console.log(company);
 
             // get tags id
             const tagsId = await knex('ACTIVITY_TAGS')
@@ -98,7 +100,7 @@ module.exports = async (req, res) => {
             return res.status(200).json({
                 success: true,
                 count: activities.length,
-                dates: groupActivities,
+                dates: convertKeysToCamelCase(groupActivities),
                 pagination
             });
         }
@@ -107,7 +109,7 @@ module.exports = async (req, res) => {
             return res.status(200).json({
                 success: true,
                 count: activities.length,
-                semesters: groupActivities,
+                semesters: convertKeysToCamelCase(groupActivities),
                 pagination
             });
         }
@@ -116,7 +118,7 @@ module.exports = async (req, res) => {
         return res.status(200).json({
             success: true,
             count: activities.length,
-            activities : groupActivities,
+            activities : convertKeysToCamelCase(activities),
             pagination
         });
 

@@ -1,6 +1,7 @@
 const knex = require('knex')(require('../../../knexfile').development);
 const fs = require('fs').promises
 const path = require('path')
+const {convertKeysToCamelCase} = require('../../../utils/toCamel')
 
 module.exports = async (req, res) => {
     try {
@@ -114,7 +115,7 @@ module.exports = async (req, res) => {
             })
         }
 
-        return res.status(201).json({ success: true, activity: activity });
+        return res.status(201).json({ success: true, activity: convertKeysToCamelCase(activity) });
     } catch (error) {
         console.error("Error: ", error);
         return res.status(500).json({ success: false, message: "Internal server error." });
