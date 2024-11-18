@@ -77,7 +77,7 @@ module.exports = async (req, res) => {
 
     const activityParticipantArr = await knex("APPLICATIONS")
       .where("activity_id", activityId)
-      .andWhere("isCanceled", false)
+      .andWhere("is_canceled", false)
       .select("id");
 
     if (activityParticipantArr.length >= activityObj.max_participants) {
