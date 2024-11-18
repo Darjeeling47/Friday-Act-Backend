@@ -103,8 +103,10 @@ module.exports = async (req, res, next) => {
     // Build application responses
     const applicationRes = await Promise.all(
       applications.map(async (application) => {
-        const studentData = await getStudentData([application.user_id]);
+        const studentDataArray = await getStudentData([application.user_id]);
+        const studentData = studentDataArray.items[0]
         const companyData = await getCompany(application.company_id);
+        console.log(application.user_id, studentData);
         return {
           id: application.id,
           user: {
@@ -116,8 +118,8 @@ module.exports = async (req, res, next) => {
             id: application.activity_id,
             name: application.activity_name,
             company: {
-              id: companyData.id,
-              name: companyData.name,
+              id: companyData.companyId,
+              name: companyData.companyNameTh,
             },
           },
           createdAt: application.created_at,
