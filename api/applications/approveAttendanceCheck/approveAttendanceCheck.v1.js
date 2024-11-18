@@ -1,5 +1,5 @@
 const crypto = require("node:crypto");
-const knex = require("knex")(require("../../../knexfile"));
+const knex = require("knex")(require("../../../knexfile").development);
 const { getStudentData } = require("../../../utils/getStudentData");
 
 module.exports = async (req, res, next) => {
