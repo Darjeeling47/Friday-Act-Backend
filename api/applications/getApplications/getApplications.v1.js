@@ -4,7 +4,7 @@ const knex = require("knex")(require("../../../knexfile").development);
 
 module.exports = async (req, res, next) => {
   try {
-    const {
+    let {
       search = "",
       page = 1,
       limit = 25,
@@ -41,8 +41,8 @@ module.exports = async (req, res, next) => {
       query = query.where((builder) => {
         builder
           .where("ACTIVITIES.name", "like", `%${search}%`)
-          .orWhere("ACTIVITIES.company_id", "like", `%${search}%`)
-          .orWhere("APPLICATIONS.user_id", "like", `%${search}%`);
+          .orWhereRaw('CAST("ACTIVITIES"."company_id" AS TEXT) LIKE ?', [`%${search}%`])
+          .orWhereRaw('CAST("APPLICATIONS"."user_id" AS TEXT) LIKE ?', [`%${search}%`])
       });
     }
 
