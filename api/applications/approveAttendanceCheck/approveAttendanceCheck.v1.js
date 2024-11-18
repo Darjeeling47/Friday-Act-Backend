@@ -1,58 +1,71 @@
 const crypto = require("node:crypto");
+const knex = require("knex")(require("../../../knexfile"));
 const { getStudentData } = require("../../../utils/getStudentData");
 
 module.exports = async (req, res, next) => {
-  // TODO Convert to promise
   try {
+    const { id } = req.params;
     const { qrString } = req.body;
 
-    
-    if (typeof qrString == "undefined" || typeof qrString != "string") {
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Application id is missing.",
+      });
+    }
+
+    if (typeof qrString !== "string") {
       return res.status(400).json({
         success: false,
         message: "The Qr String is missing.",
       });
     }
-    
-    const qrArray = qrString.split("-");
-    const qrInfo = [
-      "applicationId",
-      "userId",
-      "activityId",
-      "qrGeneratedAt",
-      "hashData",
-    ];
-    const qrConversionObj = [qrInfo, qrArray];
-    const qrObj = Object.fromEntries(qrConversionObj);
-    
-    
-    const application = await knex("APPLICATIONS")
-    .where({ id: qrObj.applicationId })
-    .select("*")
-    .first();
-    
-    if (!application) {
+
+    const applicationId = parseInt(id, 10);
+
+    // Retrieve application, activity, semester, and company data in one query
+    const applicationData = await knex("APPLICATIONS as app")
+      .join("ACTIVITIES as act", "app.activity_id", "act.id")
+      .join("SEMESTER as sem", "act.semester_id", "sem.id")
+      .join("COMPANY as comp", "act.company_id", "comp.id")
+      .select(
+        "app.*",
+        "act.date as activity_date",
+        "act.start_time",
+        "act.end_time",
+        "act.name as activity_name",
+        "act.company_id",
+        "sem.year as semester_year",
+        "sem.semester as semester_semester",
+        "comp.companyNameTh as company_name",
+        "comp.logoUrl as company_logo"
+      )
+      .where("app.id", applicationId)
+      .first();
+
+    if (!applicationData) {
       return res.status(404).json({
         success: false,
-        message: "This Qr String is invalid.",
+        message: "This application is not found.",
       });
     }
 
-    const user = await getStudentData(application.user_id);
-    
+    const application = applicationData;
+
+    // Validations
     if (!application.is_qr_generated) {
       return res.status(409).json({
-        success: true,
+        success: false,
         message:
-          "You cannot approve attendance check the application that is not generate qr code.",
+          "You cannot approve attendance check for an application that has not generated a QR code.",
       });
     }
 
     if (application.is_approved) {
       return res.status(409).json({
-        success: true,
+        success: false,
         message:
-          "You cannot approve attendance check the application that is already approved.",
+          "You cannot approve attendance check for an application that is already approved.",
       });
     }
 
@@ -60,129 +73,88 @@ module.exports = async (req, res, next) => {
       return res.status(409).json({
         success: false,
         message:
-          "You cannot approve attendance check the application that is already canceled.",
+          "You cannot approve attendance check for an application that is already canceled.",
       });
     }
 
-    const activityObj = await knex("ACTIVITIES")
-      .where("id", application.activity_id)
-      .first();
+    // Retrieve system settings in a single query
+    const settings = await knex("SYSTEM_SETTING")
+      .whereIn("name", ["attendance_check_open_hour", "attendance_check_close_hour"]);
 
-    if (!activityObj) {
-      return res.status(400).json({
-        success: false,
-        message: "This Qr String is invalid",
-      });
-    }
+    const settingsMap = {};
+    settings.forEach((setting) => {
+      settingsMap[setting.name] = parseFloat(setting.value);
+    });
 
-    // check with standard_cancellation_cutoff_hour
+    const attendanceCheckOpenHour = settingsMap["attendance_check_open_hour"];
+    const attendanceCheckCloseHour = settingsMap["attendance_check_close_hour"];
+
+    // Time validations
     const now = Date.now();
-    const attendanceCheckOpenHour = await knex("SYSTEM_SETTING")
-      .where("name", "attendance_check_open_hour ")
-      .first();
+    const activityDate = new Date(application.activity_date);
+    const [startHour, startMinute] = application.start_time.split(":").map(Number);
+    const [endHour, endMinute] = application.end_time.split(":").map(Number);
 
-    const attendanceCheckCloseHour = await knex("SYSTEM_SETTING")
-      .where("name", "attendance_check_close_hour")
-      .first();
+    const activityStart = new Date(activityDate);
+    activityStart.setHours(startHour, startMinute, 0, 0);
 
-    const activityStartMilliSecondsSinceMidNight =
-      (activityObj.start_time.slice(0, 2) * 60 +
-        activityObj.start_time.slice(3,5)) *
-      60 *
-      1000;
-    const activityEndMilliSecondsSinceMidNight =
-      (activityObj.end_time.slice(0, 2) * 60 + activityObj.end_time.slice(3,5)) *
-      60 *
-      1000;
-    const todayMilliSecondsSinceMidNight = now % 86400000;
+    const activityEnd = new Date(activityDate);
+    activityEnd.setHours(endHour, endMinute, 0, 0);
 
-    const timeAtAttendanceCheckOpenHour =
-      activityStartMilliSecondsSinceMidNight -
-      attendanceCheckOpenHour * 60 * 60 * 1000;
+    const attendanceCheckOpenTime =
+      activityStart.getTime() - attendanceCheckOpenHour * 3600000;
+    const attendanceCheckCloseTime =
+      activityEnd.getTime() + attendanceCheckCloseHour * 3600000;
 
-    const timeAtAttendanceCheckCloseHour =
-      activityEndMilliSecondsSinceMidNight +
-      attendanceCheckCloseHour * 60 * 60 * 1000;
+    if (now < attendanceCheckOpenTime) {
+      return res.status(409).json({
+        success: false,
+        message: "This activity attendance checking is not open yet.",
+      });
+    }
 
-    if (now > Date.parse(activityObj.date) + 8640000) {
+    if (now > attendanceCheckCloseTime) {
       return res.status(409).json({
         success: false,
         message: "This activity attendance checking is already closed.",
       });
     }
 
-    if (now > Date.parse(activityObj.date)) {
-      if (todayMilliSecondsSinceMidNight > timeAtAttendanceCheckCloseHour) {
-        return res.status(409).json({
-          success: false,
-          message: "This activity attendance checking is already closed.",
-        });
-      } else if (
-        todayMilliSecondsSinceMidNight < timeAtAttendanceCheckOpenHour
-      ) {
-        return res.status(409).json({
-          success: false,
-          message: "This activity attendance checking is not open yet.",
-        });
-      }
-    }
-
-    const validHashString =
-      application.id +
-      user.userId +
-      application.activity_id +
-      application.qr_generated_at;
-    const validHash = crypto.hash("md5", validHashString);
-
-    if (
-      qrObj.hashData !== validHash ||
-      user.userId !== application.user_id ||
-      qrObj.activityId !== application.activity_id ||
-      qrObj.qrGeneratedAt !== application.qr_generated_at
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "This Qr String is invalid.",
-      });
-    }
-
-    const applicationObj = {
-      updated_at: now,
-      is_approved: true,
-    };
-
-    const updatedApplication = await knex("APPLICATIONS")
+    // Update application
+    const [updatedApplication] = await knex("APPLICATIONS")
       .where({ id: application.id })
-      .update(applicationObj)
-      .returning("*");
+      .update(
+        {
+          updated_at: new Date(),
+          is_approved: true,
+        },
+        "*"
+      );
 
-    const activitySemesterObj = await knex("SEMESTER")
-      .where({ id: activityObj.semester_id })
-      .select("*")
-      .first();
+    // Get student data
+    const user = await getStudentData(application.user_id);
 
-    const companyObj = await getCompany(activityObj.company_id);
-
+    // Build response
     const applicationRes = {
       id: updatedApplication.id,
       user: {
-        id: userObj.id,
-        thaiName: user.firstNameTh + " " + user.lastNameTh,
+        id: user.id,
+        thaiName: `${user.firstNameTh} ${user.lastNameTh}`,
         studentId: user.studentId,
       },
       activity: {
-        id: activityObj.id,
-        name: activityObj.name,
+        id: application.activity_id,
+        name: application.activity_name,
         company: {
-          id: companyObj.id,
-          name: companyObj.companyNameTh,
-          logoUrl: companyObj.logoUrl,
+          id: application.company_id,
+          name: application.company_name,
+          logoUrl: application.company_logo,
         },
         semester: {
-          year: activitySemesterObj.year,
-          semester: activitySemesterObj.semester,
+          year: application.semester_year,
+          semester: application.semester_semester,
         },
-        date: activityObj.date,
+        date: application.activity_date,
       },
       createdAt: updatedApplication.created_at,
       updatedAt: updatedApplication.updated_at,
@@ -198,10 +170,11 @@ module.exports = async (req, res, next) => {
       success: true,
       application: applicationRes,
     });
-  } catch {
-    console.log(error);
-    return res
-      .status(500)
-      .json({ message: "An error occurred.", error: error.message });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred.",
+    });
   }
 };
