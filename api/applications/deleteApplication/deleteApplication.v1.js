@@ -15,7 +15,9 @@ module.exports = async (req, res, next) => {
       .where({ id: applicationId })
       .del("*");
 
-      if (!application) {
+    console.log(application);
+
+      if (!application || application.length === 0) {
         return res.status(404).json({
           success: false,
           message: "This application is not found.",
