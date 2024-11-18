@@ -11,19 +11,30 @@ module.exports = async (req, res) => {
         // get the poster buffer file from the request body
         const poster = req.file ? req.file.buffer : null;
 
+        if (maxParticipants < 0) {
+            return res.status(400).json({ success: false, message: "The max participants must be at least 0." });
+        }
+
+        // check if name is empty
+        if (name !== undefined) {
+            if (name.trim() === "") {
+                return res.status(400).json({ success: false, message: "The name is required." });
+            }
+        }
+
         // check if date is in the past
         if (new Date(date) < new Date()) {
-            return res.status(400).json({ message: "The date must be today or be in the future." });
+            return res.status(400).json({ success: false, message: "The date must be today or be in the future." });
         }
 
         // check time
-        if (new Date(startTime) >= new Date(endTime)) {
-            return res.status(400).json({ message: "The start time must be before the end time." });
+        if (startTime >= endTime) {
+            return res.status(400).json({ success: false, message: "The start time must be before the end time." });
         }
 
         // start time must be in future
         if (new Date(startTime) < new Date()) {
-            return res.status(400).json({ message: "The start time must be in the future." });
+            return res.status(400).json({ success: false, message: "The start time must be in the future." });
         }
 
         // check poster
@@ -46,13 +57,13 @@ module.exports = async (req, res) => {
 
         // check max participants
         if (maxParticipants < 0) {
-            return res.status(400).json({ message: "The max participants must be at least 0." });
+            return res.status(400).json({ success: false, message: "The max participants must be at least 0." });
         }
 
         if (tags) {
             //The tags must have at least 1 and not more than 3.
             if (tags.length < 1 || tags.length > 3) {
-                return res.status(400).json({ message: "The tags must have at least 1 and not more than 3." });
+                return res.status(400).json({ success: false, message: "The tags must have at least 1 and not more than 3." });
             }
         }
 
@@ -65,7 +76,7 @@ module.exports = async (req, res) => {
                 semester = await knex('SEMESTERS').where('start_date', '>', date).orderBy('start_date', 'asc').first()
             }
             if (!semester) {
-                return res.status(400).json({ message: "There is no semester available." });
+                return res.status(400).json({success: false, message: "There is no semester available." });
             }
 
             semesterId = semester.id
@@ -109,6 +120,6 @@ module.exports = async (req, res) => {
 
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ message: "Internal server error." });
+        return res.status(500).json({ success: false, message: "Internal server error." });
     }
 }
