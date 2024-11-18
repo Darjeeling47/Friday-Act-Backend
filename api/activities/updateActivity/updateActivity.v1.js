@@ -94,7 +94,6 @@ module.exports = async (req, res) => {
             bodyData.semester_id = semesterId
         }
 
-        console.log(bodyData);
         // update activity
         let activity = await knex('ACTIVITIES').where('id', id).update(bodyData).returning('*')
 
