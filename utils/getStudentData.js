@@ -3,10 +3,8 @@ const { getIDPaccessToken } = require('./getIDPaccessToken');
 
 exports.getStudentData = async function getStudentData(studentId) {
   const token = await getIDPaccessToken();
-
   const queryParams = {
-    studentIds: [studentId, ''],
-    limit: 1
+    studentIds: studentId,
   }
 
   const options = {
@@ -20,8 +18,7 @@ exports.getStudentData = async function getStudentData(studentId) {
   };
   
   const students = await axios.request(options).then(function (response) {
-
-    return response.data.items[0]
+    return response.data
   }).catch(function (error) {
     console.error(error);
     return null

@@ -18,12 +18,12 @@ exports.getIDPaccessToken = async function getIDPaccessToken() {
       },
       body: JSON.stringify(bodyData),
     });
+    const data = await response.json();
 
     if (!response.ok) {
       throw new Error("Unable to fetch information.");
     }
 
-    const data = await response.json();
 
     return data.access_token;
 

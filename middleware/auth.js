@@ -55,4 +55,28 @@ exports.authorize = (role) => {
   };
 };
 
-exports.gate = () => {};
+exports.gate = async (req, res, next) => {
+  try{
+    let token;
+
+    //Check if header is valid and have Bearer
+    if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith("Bearer")
+    ) {
+      token = req.headers.authorization.split(" ")[1];
+    }
+
+    //Check if token is exits
+    if (token && token != "null" && token != undefined) {
+      const userData = await getUserInfoFromToken(token);
+
+      req.user = userData;
+
+      next();
+    }
+  } catch (error) {
+    console.error("Error: ", error);
+    return null;
+  }
+};

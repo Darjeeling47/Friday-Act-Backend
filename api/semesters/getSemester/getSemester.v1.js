@@ -22,7 +22,6 @@ module.exports = async (req, res, next) => {
     return res.status(500).json({
       success: false,
       message: "An error occurred.",
-      error: error.message
     });
   }
 }
