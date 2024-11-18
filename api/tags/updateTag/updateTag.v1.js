@@ -25,7 +25,7 @@ module.exports = async (req, res) => {
     }
   
     // check if the color is in HEX format
-  const hexColorRegex = /^[0-9a-fA-Z]{3,6}$/;
+  const hexRegex = /^[0-9a-fA-Z]{3,6}$/;
     if (color && !hexRegex.test(color)) {
       return res.status(400).json({
         success: false,
