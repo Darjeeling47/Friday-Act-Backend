@@ -26,7 +26,9 @@ module.exports = async (req, res, next) => {
     // Base query
     let query = knex("APPLICATIONS")
       .join("ACTIVITIES", "APPLICATIONS.activity_id", "ACTIVITIES.id")
+      .join("SEMESTERS", "ACTIVITIES.semester_id", "SEMESTERS.id")
       .select(
+        "SEMESTERS.*",
         "APPLICATIONS.*",
         "ACTIVITIES.name as activity_name",
         "ACTIVITIES.date as activity_date",
@@ -37,7 +39,10 @@ module.exports = async (req, res, next) => {
     // Search functionality
     if (search) {
       query = query.where((builder) => {
-        builder.where("ACTIVITIES.name", "like", `%${search}%`);
+        builder
+          .where("ACTIVITIES.name", "like", `%${search}%`)
+          .orWhere("ACTIVITIES.company_id", "like", `%${search}%`)
+          .orWhere("APPLICATIONS.user_id", "like", `%${search}%`);
       });
     }
 
@@ -104,7 +109,7 @@ module.exports = async (req, res, next) => {
     const applicationRes = await Promise.all(
       applications.map(async (application) => {
         const studentDataArray = await getStudentData([application.user_id]);
-        const studentData = studentDataArray.items[0]
+        const studentData = studentDataArray.items[0];
         const companyData = await getCompany(application.company_id);
         console.log(application.user_id, studentData);
         return {
@@ -121,6 +126,11 @@ module.exports = async (req, res, next) => {
               id: companyData.companyId,
               name: companyData.companyNameTh,
             },
+            semester: {
+              id: application.semester_id,
+              year: application.year,
+              semester: application.semester
+            }
           },
           createdAt: application.created_at,
           updatedAt: application.updated_at,
@@ -133,6 +143,8 @@ module.exports = async (req, res, next) => {
         };
       })
     );
+
+    console.log(applicationRes);
 
     // Pagination info
     const pagination = {
@@ -152,13 +164,14 @@ module.exports = async (req, res, next) => {
 
     if (groupBy === "semester") {
       // Group by semester
-      const semesters = {};
+      let semesters = {};
       applicationRes.forEach((app) => {
-        const key = app.activity.semester_id;
+        const key = app.activity.semester.id;
         if (!semesters[key]) {
           semesters[key] = {
             semester: {
-              id: app.activity.semester_id,
+              year: app.activity.semester.year,
+              semester: app.activity.semester.semester
             },
             applications: [],
           };
