@@ -57,17 +57,19 @@ module.exports = async (req, res) => {
             activity.currentParticipants = parseInt(currentParticipants.current_participants);
         }
 
-        if (req.user && req.user.role !== 'applicationAdmin') {
+        if (true) {
             // Get user applications
+            console.log(req.user.userId);
             const userApplications = await knex('APPLICATIONS')
-                .where('user_id', req.user.userId)
+                .where('user_id', req.user.studentId)
                 .select('activity_id');
 
+            console.log(userApplications);
             // Add isApplied to each activity
             activities.forEach(activity => {
-                activity.isApplied = userApplications.some(application => application.activity_id === activity.id);
+                activity.isApplied = userApplications.some(application => application.activity_id == activity.id);
             });
-        } 
+        }
 
         // get semester
         for (const activity of activities) {
@@ -82,7 +84,6 @@ module.exports = async (req, res) => {
             // get company
             const company = await getCompany(activity.company_id);
             activity.company = company;
-            console.log(company);
 
             // get tags id
             const tagsId = await knex('ACTIVITY_TAGS')
