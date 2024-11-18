@@ -27,7 +27,7 @@ applicationRoute.put(
 );
 
 // Get Applications
-applicationRoute.get("/:id", versionMiddleware(1), getApplication.v1);
+applicationRoute.get("/:id", protect, versionMiddleware(1), getApplication.v1);
 
 // Update Application
 applicationRoute.put("/:id", protect, authorize("applicationAdmin"), versionMiddleware(1), updateApplication.v1);
