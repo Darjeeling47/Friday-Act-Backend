@@ -1,21 +1,22 @@
 const knex = require("knex")(require("../../../knexfile").development);
 const fs = require("fs").promises;
 const path = require("path");
+const { getCompany } = require("../../../utils/getCompany");
 
 module.exports = async (req, res) => {
   try {
     const user = req.user;
-    const { activityId } = req.params;
+    const activityId = req.params.id;
 
-    if (!activityId) {
+    if (activityId == ":id" || !activityId) {
       return res.status(404).json({
         success: false,
-        message: "This activity is not found.",
+        message: "Undefined Parameter(s).",
       });
     }
 
     const activityObj = await knex("ACTIVITIES")
-      .where("activity_id", activityId)
+      .where("id", activityId)
       .first();
 
     if (!activityObj) {
@@ -29,12 +30,17 @@ module.exports = async (req, res) => {
       .where("date", activityObj.date)
       .select("id");
 
+    let actIdArray = [];
+    for (let actId in Object.values(activityOnTheSameDay)) {
+      actIdArray.push(Object.values(actId));
+    }
+
     const userActivityThatDay = await knex("APPLICATIONS")
-      .whereIn("activity_id", activityOnTheSameDay)
-      .andWhere("user_id", user.userId)
+      .whereIn("activity_id", actIdArray)
+      .andWhere("user_id", user.studentId)
       .select("id");
 
-    if (userActivityThatDay) {
+    if (userActivityThatDay.length != 0) {
       return res.status(409).json({
         success: false,
         message:
@@ -42,26 +48,31 @@ module.exports = async (req, res) => {
       });
     }
 
-    const now = Date.now();
+    const now = new Date(Date.now());
 
     const activityMilliSecondsSinceMidNight =
       (activityObj.start_time.slice(0, 2) * 60 +
-        activityObj.start_time.slice(3,5)) *
+        activityObj.start_time.slice(3, 5)) *
       60 *
       1000;
 
-      const applicationCloseOffHour = await knex("SYSTEM_SETTING")
+    const applicationCloseOffHour = await knex("SYSTEM_SETTING")
       .where("name", "application_close_hour")
       .first();
-      const applicationCloseOffMilliSecond = applicationCloseOffHour * 60 * 60 * 1000
+    const applicationCloseOffMilliSecond =
+      applicationCloseOffHour * 60 * 60 * 1000;
 
-    const applicationCloseTimeMilliSecond = Date.parse(activityObj.date) + activityMilliSecondsSinceMidNight - applicationCloseOffMilliSecond
+    const applicationCloseTimeMilliSecond =
+      Date.parse(activityObj.date) +
+      activityMilliSecondsSinceMidNight -
+      applicationCloseOffMilliSecond;
 
     if (now > applicationCloseTimeMilliSecond) {
       return res.status(409).json({
         success: false,
-        message: "This activity is fully registered. Please apply for other activities or try again when someone has canceled."
-      })
+        message:
+          "This activity is fully registered. Please apply for other activities or try again when someone has canceled.",
+      });
     }
 
     const activityParticipantArr = await knex("APPLICATIONS")
@@ -78,7 +89,7 @@ module.exports = async (req, res) => {
 
     const applicationObj = {
       activity_id: activityId,
-      user_id: user.userId,
+      user_id: user.studentId,
       created_at: now,
       updated_at: now,
       is_qr_generated: false,
@@ -93,12 +104,12 @@ module.exports = async (req, res) => {
       .insert(applicationObj)
       .returning("*");
 
-    const activitySemesterObj = await knex("SEMESTER")
+    const activitySemesterObj = await knex("SEMESTERS")
       .where({ id: activityObj.semester_id })
       .select("*")
       .first();
 
-    const companyObj = await getCompany(activityIdObj.company_id);
+    const companyObj = await getCompany(activityObj.company_id);
 
     const applicationRes = {
       id: insertedApplication.id,
@@ -119,7 +130,7 @@ module.exports = async (req, res) => {
           year: activitySemesterObj.year,
           semester: activitySemesterObj.semester,
         },
-        date: activityIdObj.date,
+        date: activityObj.date,
       },
       createdAt: insertedApplication.created_at,
       updatedAt: insertedApplication.updated_at,

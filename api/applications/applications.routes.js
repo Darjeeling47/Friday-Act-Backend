@@ -14,9 +14,10 @@ const deleteApplication = require("./deleteApplication");
 const getApplicationFromQrString = require("./getApplicationFromQrString");
 const requestAttendanceCheck = require("./requestAttendanceCheck");
 const approveAttendanceCheck = require("./approveAttendanceCheck");
+const { protect, authorize } = require("../../middleware/auth");
 
 // Cancel Application
-applicationRoute.put("/:id/cancel", versionMiddleware(1), cancelApplication.v1);
+applicationRoute.put("/:id/cancel", protect, versionMiddleware(1), cancelApplication.v1);
 
 // Request Attendance Check
 applicationRoute.put(
@@ -26,13 +27,13 @@ applicationRoute.put(
 );
 
 // Get Applications
-applicationRoute.get("/:id", versionMiddleware(1), getApplications.v1);
+applicationRoute.get("/:id", versionMiddleware(1), getApplication.v1);
 
 // Update Application
-applicationRoute.put("/:id", versionMiddleware(1), updateApplication.v1);
+applicationRoute.put("/:id", protect, authorize("applicationAdmin"), versionMiddleware(1), updateApplication.v1);
 
 // Delete Application
-applicationRoute.delete("/:id", versionMiddleware(1), deleteApplication.v1);
+applicationRoute.delete("/:id", protect, authorize("applicationAdmin"), versionMiddleware(1), deleteApplication.v1);
 
 // Get Application From QR String
 applicationRoute.get(
@@ -49,9 +50,9 @@ applicationRoute.put(
 );
 
 // Create Application
-applicationRoute.post("/", versionMiddleware(1), createApplication.v1);
+applicationRoute.post("/", protect, authorize("applicationAdmin"), versionMiddleware(1), createApplication.v1);
 
-// Get Application
-applicationRoute.get("/", versionMiddleware(1), getApplication.v1);
+// Get Applications
+applicationRoute.get("/", protect, authorize("applicationAdmin"), versionMiddleware(1), getApplications.v1);
 
 module.exports = applicationRoute;

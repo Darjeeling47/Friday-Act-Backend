@@ -9,7 +9,7 @@ module.exports = async (req, res, next) => {
 
   // Validate page และ limit
   if (page < 1) {
-    return res.status(400).json({ message: "This page number is invalid." });
+    return res.status(400).json({ message: "This page number is invalid.", success: false });
   }
   if (limit > 100) {
     limit = 100;
@@ -42,7 +42,7 @@ module.exports = async (req, res, next) => {
     const totalPages = Math.ceil(total / limit);
 
     if (page > totalPages && totalPages > 0) {
-      return res.status(400).json({ message: "This page number is invalid." });
+      return res.status(400).json({ message: "This page number is invalid.", success: false });
     }
 
     // pagination
@@ -62,6 +62,6 @@ module.exports = async (req, res, next) => {
     });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ message: "An error occurred.", error: error.message });
+    return res.status(500).json({ message: "An error occurred.", success: false});
   }
 };

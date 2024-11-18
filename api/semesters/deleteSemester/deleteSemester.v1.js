@@ -8,7 +8,7 @@ module.exports = async (req, res, next) => {
     const existingSemester = await knex('SEMESTERS').where({ id }).first();
 
     if (!existingSemester) {
-      return res.status(404).json({ message: "This semester is not found." });
+      return res.status(404).json({ message: "This semester is not found.", success: false });
     }
 
     // delete the semester
@@ -19,6 +19,6 @@ module.exports = async (req, res, next) => {
       semester: {}
     });
   } catch (error) {
-    return res.status(500).json({ message: "An error occurred.", error: error.message });
+    return res.status(500).json({ message: "An error occurred.", success: false });
   }
 }
