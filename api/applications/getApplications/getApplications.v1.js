@@ -43,6 +43,7 @@ module.exports = async (req, res, next) => {
           .where("ACTIVITIES.name", "like", `%${search}%`)
           .orWhereRaw('CAST("ACTIVITIES"."company_id" AS TEXT) LIKE ?', [`%${search}%`])
           .orWhereRaw('CAST("APPLICATIONS"."user_id" AS TEXT) LIKE ?', [`%${search}%`])
+          .orWhereRaw('CAST("APPLICATIONS"."id" AS TEXT) LIKE ?', [`%${search}%`])
       });
     }
 
