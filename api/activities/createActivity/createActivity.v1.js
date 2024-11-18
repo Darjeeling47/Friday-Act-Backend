@@ -12,7 +12,7 @@ module.exports = async (req, res) => {
         const { name, description, date, startTime, endTime, location, maxParticipants, speaker, companyId, tags } = req.body;
         // get the poster buffer file from the request body
         const poster = req.file ? req.file.buffer : null;
-
+        
         // get company
         const company = await getCompany(companyId);
         if (!company) {
@@ -38,13 +38,8 @@ module.exports = async (req, res) => {
         }
 
         // validate time range
-        if (new Date(`${date} ${startTime}`) >= new Date(`${date} ${endTime}`)) {
+        if (startTime >= endTime) {
             return res.status(400).json({ message: "The startTime must be before the endTime." });
-        }
-
-        // validate startTime and endTime
-        if (new Date(`${date} ${startTime}`) < new Date()) {
-            return res.status(400).json({ message: "The startTime and endTime must be in the future." });
         }
 
         let activity = null
