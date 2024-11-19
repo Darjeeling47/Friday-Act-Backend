@@ -34,7 +34,7 @@ module.exports = async (req, res, next) => {
 
     const companyObj = await getCompany(activityObj.company_id);
     const status = determineStatus(application.is_canceled, application.is_approved, activityObj.date)
-    if (status = "Unknown") {
+    if (status === "Unknown") {
       console.log(`Failed to determine status of activity ID:${activityObj.id}`)
     }
 
