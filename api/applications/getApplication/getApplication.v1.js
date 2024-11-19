@@ -45,7 +45,7 @@ module.exports = async (req, res, next) => {
         id: activityObj.id,
         name: activityObj.name,
         company: {
-          id: companyObj.id,
+          id: companyObj.companyId,
           name: companyObj.companyNameTh,
           logoUrl: companyObj.logoUrl,
         },
