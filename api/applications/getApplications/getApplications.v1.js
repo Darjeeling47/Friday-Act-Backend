@@ -138,6 +138,7 @@ module.exports = async (req, res, next) => {
               semester: application.semester
             }
           },
+          date: application.activity_date,
           createdAt: application.created_at,
           updatedAt: application.updated_at,
           isQrGenerated: application.is_qr_generated,
