@@ -112,6 +112,8 @@ module.exports = async (req, res, next) => {
         const studentDataArray = await getStudentData([application.user_id]);
         const studentData = studentDataArray.items[0];
         const companyData = await getCompany(application.company_id);
+        const status = determineStatus(application.is_canceled, application.is_approved, application.activity_date)
+
         return {
           id: application.id,
           user: {
@@ -125,6 +127,7 @@ module.exports = async (req, res, next) => {
             company: {
               id: companyData.companyId,
               name: companyData.companyNameTh,
+              logoUrl: companyData.logoUrl,
             },
             semester: {
               id: application.semester_id,
@@ -140,6 +143,7 @@ module.exports = async (req, res, next) => {
           isApproved: application.is_approved,
           isCanceled: application.is_canceled,
           cancellationReason: application.cancellation_reason,
+          status: status
         };
       })
     );
@@ -207,3 +211,26 @@ module.exports = async (req, res, next) => {
     });
   }
 };
+
+function determineStatus(isCanceled, isApproved, activityDateTime) {
+    // Check if activityDateTime is valid
+    if (!activityDateTime) {
+        console.log("Warning: activityDateTime is null/undefined");
+        return "Unknown";
+    }
+
+    // Ensure activityDateTime is a Date object
+    if (!(activityDateTime instanceof Date)) {
+        activityDateTime = new Date(activityDateTime);
+    }
+
+    const now = new Date(Date.now() + Number(process.env.TIME_OFFSET_MS)).getTime();
+    const activityDateTimeUnixMS = activityDateTime.getTime();
+
+    if (isApproved) return "Approved";
+    if (isCanceled) return "Canceled";
+    if (now > (activityDateTimeUnixMS - (activityDateTimeUnixMS % 86400000) + 86400000)) {
+        return "Absent";
+    }
+    return "Pending";
+}

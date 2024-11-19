@@ -33,6 +33,7 @@ module.exports = async (req, res, next) => {
       .first();
 
     const companyObj = await getCompany(activityObj.company_id);
+    const status = determineStatus(application.is_canceled, application.is_approved, activityObj.date)
 
     const applicationRes = {
       id: application.id,
@@ -63,6 +64,7 @@ module.exports = async (req, res, next) => {
       isApproved: application.is_approved,
       isCanceled: application.is_canceled,
       cancellationReason: application.cancellation_reason,
+      status: status
     };
 
     return res.status(200).json({
@@ -77,3 +79,26 @@ module.exports = async (req, res, next) => {
     });
   }
 };
+
+function determineStatus(isCanceled, isApproved, activityDateTime) {
+  // Check if activityDateTime is valid
+  if (!activityDateTime) {
+      console.log("Warning: activityDateTime is null/undefined");
+      return "Unknown";
+  }
+
+  // Ensure activityDateTime is a Date object
+  if (!(activityDateTime instanceof Date)) {
+      activityDateTime = new Date(activityDateTime);
+  }
+
+  const now = new Date(Date.now() + Number(process.env.TIME_OFFSET_MS)).getTime();
+  const activityDateTimeUnixMS = activityDateTime.getTime();
+
+  if (isApproved) return "Approved";
+  if (isCanceled) return "Canceled";
+  if (now > (activityDateTimeUnixMS - (activityDateTimeUnixMS % 86400000) + 86400000)) {
+      return "Absent";
+  }
+  return "Pending";
+}
