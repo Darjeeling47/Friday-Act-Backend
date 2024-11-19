@@ -1,8 +1,24 @@
 // import env from '.env'
 require('dotenv').config();
 
+const fs = require('fs');
+const path = require('path');
+const jwt = require('jsonwebtoken');
+
+
 exports.getIDPaccessToken = async function getIDPaccessToken() {
   try {
+    // Reading plain text token
+    const tokenData = JSON.parse(fs.readFileSync('token.json', { encoding: 'utf8' }));
+    const token = tokenData.access_token
+
+    // Check if token is expired
+    if (!(tokenData.currentTimestamp + tokenData.expires_in - 6000 < Math.floor(Date.now() / 1000))) {
+
+      return token;
+    }
+    
+
     const bodyData = {
       grant_type: "client_credentials",
       client_id: "cedt-friday-activity",
@@ -18,11 +34,23 @@ exports.getIDPaccessToken = async function getIDPaccessToken() {
       },
       body: JSON.stringify(bodyData),
     });
-    const data = await response.json();
+    let data = await response.json();
 
     if (!response.ok) {
       throw new Error("Unable to fetch information.");
     }
+
+    const saveToken = (token) => {
+      const tokenString = JSON.stringify(token, null, 2); // Serialize the JSON object with indentation
+      fs.writeFileSync('token.json', tokenString); // Save to a JSON file
+      console.log('Token saved to token.json');
+    };
+
+    console.log('Access token:', data);
+
+    data.currentTimestamp = Math.floor(Date.now() / 1000);
+
+    saveToken(data);
 
 
     return data.access_token;
