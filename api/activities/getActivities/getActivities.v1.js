@@ -26,16 +26,20 @@ module.exports = async (req, res) => {
     // filter
     query = applyFilters(query, req.query);
 
-    // search by company name
-    if (search) {
-      let searchParam = {};
-      searchParam.search = search;
-      const company = await getCompanies(searchParam);
+        let companies
+        // search by company name
+        if (search) {
+            let searchParam = {};
+            searchParam.search = search;
+            companies = await getCompanies(searchParam);
 
-      const companyIds = company.items.map((company) => company.companyId);
+            const companyIds = companies.items.map(company => company.companyId);
 
-      query = query.whereIn("company_id", companyIds);
-    }
+            query = query.whereIn('company_id', companyIds);
+            
+        } else {
+            companies = await getCompanies();
+        }
 
     // Apply sorting
     query = applySort(query, req.query);
@@ -87,14 +91,13 @@ module.exports = async (req, res) => {
 
       activity.semester = semester;
 
-      // get company
-      const company = await getCompany(activity.company_id);
-      activity.company = company;
-
-      // get tags id
-      const tagsId = await knex("ACTIVITY_TAGS")
-        .where("activity_id", activity.id)
-        .select("tag_id");
+            // map company to activity
+            activity.company = companies.items.find(company => company.companyId === activity.company_id);
+            
+            // get tags id
+            const tagsId = await knex('ACTIVITY_TAGS')
+                .where('activity_id', activity.id)
+                .select('tag_id');
 
       // get tags
       const tags = await knex("TAGS").whereIn(
