@@ -4,6 +4,8 @@ module.exports = async (req, res, next) => {
   try {
     const companyId = parseInt(req.params.id);
     const companyObj = await getCompany(companyId)
+    
+    if (!companyObj) throw new Error(`getCompanyV1, Error getting company with id of ${companyId}`)
 
     return res.status(200).json({
       success: true,

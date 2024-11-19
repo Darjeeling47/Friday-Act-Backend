@@ -17,7 +17,7 @@ module.exports = async (req, res, next) => {
 
     const companyObjArray = await getCompanies(filterParams)
 
-    if (!companyObjArray) throw new Error("Error at companyObjArray")
+    if (!companyObjArray) throw new Error(`getCompaniesV1, Error at getCompanies using filter parameters of ${Object.entries(filterParams)}`)
 
     return res.status(200).json({
       success: true,
