@@ -58,7 +58,7 @@ module.exports = async (req, res) => {
             activity.currentParticipants = parseInt(currentParticipants.current_participants);
         }
 
-        if (true) {
+        if (req.user) {
             // Get user applications
             const userApplications = await knex('APPLICATIONS')
                 .where('user_id', req.user.studentId)
