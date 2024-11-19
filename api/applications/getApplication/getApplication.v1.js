@@ -34,6 +34,9 @@ module.exports = async (req, res, next) => {
 
     const companyObj = await getCompany(activityObj.company_id);
     const status = determineStatus(application.is_canceled, application.is_approved, activityObj.date)
+    if (status = "Unknown") {
+      console.log(`Failed to determine status of activity ID:${activityObj.id}`)
+    }
 
     const applicationRes = {
       id: application.id,
@@ -87,9 +90,12 @@ function determineStatus(isCanceled, isApproved, activityDateTime) {
       return "Unknown";
   }
 
-  // Ensure activityDateTime is a Date object
-  if (!(activityDateTime instanceof Date)) {
+    // Ensure activityDateTime is a Date object
+    if (!(activityDateTime instanceof Date)) {
       activityDateTime = new Date(activityDateTime);
+      if (isNaN(activityDateTime.getTime())) {
+        return "Unknown"
+      }
   }
 
   const now = new Date(Date.now() + Number(process.env.TIME_OFFSET_MS)).getTime();

@@ -113,6 +113,9 @@ module.exports = async (req, res, next) => {
         const studentData = studentDataArray.items[0];
         const companyData = await getCompany(application.company_id);
         const status = determineStatus(application.is_canceled, application.is_approved, application.activity_date)
+        if (status = "Unknown") {
+          console.log(`Failed to determine status of activity ID:${application.activity_id}`)
+        }
 
         return {
           id: application.id,
@@ -222,6 +225,9 @@ function determineStatus(isCanceled, isApproved, activityDateTime) {
     // Ensure activityDateTime is a Date object
     if (!(activityDateTime instanceof Date)) {
         activityDateTime = new Date(activityDateTime);
+        if (isNaN(activityDateTime.getTime())) {
+          return "Unknown"
+        }
     }
 
     const now = new Date(Date.now() + Number(process.env.TIME_OFFSET_MS)).getTime();
