@@ -63,7 +63,7 @@ exports.getIDPaccessToken = async function getIDPaccessToken() {
             86400000 // 24 hour in milliseconds
           ]
         );
-        console.log(`updated ${localToken.service_name} token at ${now}`);
+        console.log(`updated cedt_idp token at ${now}`);
         return newToken;
       }
       console.log(`failed to fetch ${localToken.service_name} token at ${now}`);
