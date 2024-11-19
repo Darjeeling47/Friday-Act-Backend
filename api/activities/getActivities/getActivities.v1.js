@@ -26,20 +26,23 @@ module.exports = async (req, res) => {
     // filter
     query = applyFilters(query, req.query);
 
-        let companies
-        // search by company name
-        if (search) {
-            let searchParam = {};
-            searchParam.search = search;
-            companies = await getCompanies(searchParam);
+    let companies;
+    // search by company name
+    // Search by company name or activity name
+    if (search) {
+      let searchParam = { search };
+      companies = await getCompanies(searchParam);
+      const companyIds = companies.items.map((company) => company.companyId);
 
-            const companyIds = companies.items.map(company => company.companyId);
-
-            query = query.whereIn('company_id', companyIds);
-            
-        } else {
-            companies = await getCompanies();
+      query = query.where(function () {
+        if (companyIds.length > 0) {
+          this.whereIn("company_id", companyIds);
         }
+        this.orWhere("ACTIVITIES.name", "like", `%${search}%`);
+      });
+    } else {
+      companies = await getCompanies();
+    }
 
     // Apply sorting
     query = applySort(query, req.query);
@@ -48,11 +51,7 @@ module.exports = async (req, res) => {
     query = query.limit(limit).offset((page - 1) * limit);
 
     // Get activities
-    const activities = await query.select("ACTIVITIES.*").modify((qb) => {
-      if (search) {
-        qb.where("ACTIVITIES.name", "like", `%${search}%`);
-      }
-    });
+    const activities = await query.select("ACTIVITIES.*");
 
     // get currentParticipants
     for (const activity of activities) {
@@ -91,13 +90,15 @@ module.exports = async (req, res) => {
 
       activity.semester = semester;
 
-            // map company to activity
-            activity.company = companies.items.find(company => company.companyId === activity.company_id);
-            
-            // get tags id
-            const tagsId = await knex('ACTIVITY_TAGS')
-                .where('activity_id', activity.id)
-                .select('tag_id');
+      // map company to activity
+      activity.company = companies.items.find(
+        (company) => company.companyId === activity.company_id
+      );
+
+      // get tags id
+      const tagsId = await knex("ACTIVITY_TAGS")
+        .where("activity_id", activity.id)
+        .select("tag_id");
 
       // get tags
       const tags = await knex("TAGS").whereIn(
