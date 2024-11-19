@@ -41,7 +41,7 @@ module.exports = async (req, res, next) => {
     const applicationRes = {
       id: application.id,
       user: {
-        id: userObj.id,
+        id: userObj.studentId,
         thaiName: userObj.firstNameTh + " " + userObj.lastNameTh,
         studentId: userObj.studentId,
       },
