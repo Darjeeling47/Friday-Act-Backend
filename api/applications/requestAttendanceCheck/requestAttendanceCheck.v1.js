@@ -1,5 +1,5 @@
-const crypto = require("node:crypto");
 const knex = require("knex")(require("../../../knexfile").development);
+const { getCompany } = require("../../../utils/getCompany");
 
 module.exports = async (req, res, next) => {
   try {
@@ -15,6 +15,7 @@ module.exports = async (req, res, next) => {
   const user = req.user;
 
   const now = new Date(Date.now() + Number(process.env.TIME_OFFSET_MS));
+  console.log(`current time: ${now}`);
 
   let applicationObj = await knex("APPLICATIONS")
     .where({ id: applicationId })
@@ -77,7 +78,7 @@ module.exports = async (req, res, next) => {
   const attendanceCheckOpenHour = parseFloat(attendanceCheckOpenHourSetting.value);
   const attendanceCheckCloseHour = parseFloat(attendanceCheckCloseHourSetting.value);
 
-  console.log(attendanceCheckOpenHour, attendanceCheckCloseHour);
+  console.log(`attendanceCheckOpenHour ${attendanceCheckOpenHour}, attendanceCheckCloseHour ${attendanceCheckCloseHour}`);
   
   // Parse activity date and times to construct Date objects
   const activityDate = new Date(activityObj.date);
@@ -94,16 +95,16 @@ module.exports = async (req, res, next) => {
   
   // Calculate attendance check open and close times
   const attendanceCheckOpenTime = new Date(activityStartDateTime);
-  console.log(attendanceCheckOpenTime);
-  console.log(attendanceCheckOpenTime.getHours() - attendanceCheckOpenHour);
+  console.log(`attendanceCheckOpenTime ${attendanceCheckOpenTime}`);
+  console.log(`attendanceCheckOpenTime.getHours() - attendanceCheckOpenHour ${attendanceCheckOpenTime.getHours() - attendanceCheckOpenHour}`);
   attendanceCheckOpenTime.setHours(attendanceCheckOpenTime.getHours() - attendanceCheckOpenHour);
   
   const attendanceCheckCloseTime = new Date(activityEndDateTime);
-  console.log(attendanceCheckCloseTime);
-  console.log(attendanceCheckCloseTime.getHours() + attendanceCheckCloseHour);
+  console.log(`attendanceCheckCloseTime ${attendanceCheckCloseTime}`);
+  console.log(`attendanceCheckCloseTime.getHours() + attendanceCheckCloseHour ${attendanceCheckCloseTime.getHours() + attendanceCheckCloseHour}`);
   attendanceCheckCloseTime.setHours(attendanceCheckCloseTime.getHours() + attendanceCheckCloseHour);
 
-  console.log(attendanceCheckOpenTime, attendanceCheckCloseTime);
+  console.log(`attendanceCheckOpenTime ${attendanceCheckOpenTime}, attendanceCheckCloseTime ${attendanceCheckCloseTime}`);
   
   // Validate attendance check time window
   if (now < attendanceCheckOpenTime) {
@@ -135,7 +136,9 @@ module.exports = async (req, res, next) => {
       .returning("*");
   }
 
-  const activitySemesterObj = await knex("SEMESTER")
+  console.log(activityObj.semester_id);
+
+  const activitySemesterObj = await knex("SEMESTERS")
     .where({ id: activityObj.semester_id })
     .select("*")
     .first();
