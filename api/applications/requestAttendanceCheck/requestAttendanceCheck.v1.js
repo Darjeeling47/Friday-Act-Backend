@@ -1,7 +1,16 @@
 const crypto = require("node:crypto");
+const knex = require("knex")(require("../../../knexfile").development);
 
 module.exports = async (req, res, next) => {
-  const { applicationId} = req.params;
+  try {
+    const applicationId = parseInt(req.params.id, 10);
+
+    if (isNaN(applicationId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid application ID",
+      });
+    }
 
   const user = req.user;
 
@@ -32,7 +41,7 @@ module.exports = async (req, res, next) => {
   }
 
   if (
-    user.userId !== applicationObj.user_id &&
+    user.studentId !== applicationObj.user_id &&
     user.role !== "applicationAdmin"
   ) {
     return res.status(401).json({
@@ -67,6 +76,8 @@ module.exports = async (req, res, next) => {
   
   const attendanceCheckOpenHour = parseFloat(attendanceCheckOpenHourSetting.value);
   const attendanceCheckCloseHour = parseFloat(attendanceCheckCloseHourSetting.value);
+
+  console.log(attendanceCheckOpenHour, attendanceCheckCloseHour);
   
   // Parse activity date and times to construct Date objects
   const activityDate = new Date(activityObj.date);
@@ -83,10 +94,16 @@ module.exports = async (req, res, next) => {
   
   // Calculate attendance check open and close times
   const attendanceCheckOpenTime = new Date(activityStartDateTime);
+  console.log(attendanceCheckOpenTime);
+  console.log(attendanceCheckOpenTime.getHours() - attendanceCheckOpenHour);
   attendanceCheckOpenTime.setHours(attendanceCheckOpenTime.getHours() - attendanceCheckOpenHour);
   
   const attendanceCheckCloseTime = new Date(activityEndDateTime);
+  console.log(attendanceCheckCloseTime);
+  console.log(attendanceCheckCloseTime.getHours() + attendanceCheckCloseHour);
   attendanceCheckCloseTime.setHours(attendanceCheckCloseTime.getHours() + attendanceCheckCloseHour);
+
+  console.log(attendanceCheckOpenTime, attendanceCheckCloseTime);
   
   // Validate attendance check time window
   if (now < attendanceCheckOpenTime) {
@@ -104,7 +121,7 @@ module.exports = async (req, res, next) => {
   }
 
   if (!applicationObj.is_qr_generated) {
-    const qrString = `/admin/application/check/${applicationId}`;
+    const qrString = `/admin/application/check/${applicationId}?profile=${user.profileImageUrl}`;
     const applicationUpdateObj = {
       updated_at: now,
       is_qr_generated: true,
@@ -160,4 +177,11 @@ module.exports = async (req, res, next) => {
     success: true,
     application: applicationRes,
   });
+} catch(error) {
+  console.error(error);
+  return res.status(500).json({
+    success: false,
+    message: "An error occurred.",
+  });
+}
 };
