@@ -92,16 +92,19 @@ module.exports = async (req, res, next) => {
       cancellation_reason: cancellationReason,
     };
 
-    const insertedApplication = await knex("APPLICATIONS")
+    const insertedApplicationArray = await knex("APPLICATIONS")
       .insert(applicationObj)
       .returning("*");
 
-    if (!insertedApplication) {
-      return res.status(500).json({
-        success: false,
-        message: "Internal database malfunction.",
-      });
-    }
+      
+      if (!insertedApplicationArray || insertedApplicationArray.length === 0) {
+        return res.status(500).json({
+          success: false,
+          message: "Internal database malfunction.",
+        });
+      }
+
+      const insertedApplication = insertedApplicationArray[0]
 
     const activitySemesterObj = await knex("SEMESTERS")
       .where({ id: activityIdObj.semester_id })
