@@ -26,7 +26,7 @@ module.exports = async (req, res, next) => {
 
         return res.status(200).json({
             success: true,
-            data: updatedSystemSetting[0]
+            setting : updatedSystemSetting[0]
         });
     } catch (error) {
         return res.status(500).json({ success: false, message: error.message });
