@@ -19,9 +19,16 @@ const { protect, authorize } = require("../../middleware/auth");
 // Cancel Application
 applicationRoute.put("/:id/cancel", protect, versionMiddleware(1), cancelApplication.v1);
 
+// Approve Attendance Check
+applicationRoute.put(
+  "/attendance-check", protect, authorize("applicationAdmin"),
+  versionMiddleware(1), 
+  approveAttendanceCheck.v1
+);
+
 // Request Attendance Check
 applicationRoute.put(
-  "/:id/attendance-check",
+  "/:id/attendance-check", protect,
   versionMiddleware(1),
   requestAttendanceCheck.v1
 );
@@ -36,18 +43,12 @@ applicationRoute.put("/:id", protect, authorize("applicationAdmin"), versionMidd
 applicationRoute.delete("/:id", protect, authorize("applicationAdmin"), versionMiddleware(1), deleteApplication.v1);
 
 // Get Application From QR String
-applicationRoute.get(
+/* applicationRoute.get(
   "/attendance-check",
   versionMiddleware(1),
   getApplicationFromQrString.v1
-);
+); */
 
-// Approve Attendance Check
-applicationRoute.put(
-  "/attendance-check",
-  versionMiddleware(1),
-  approveAttendanceCheck.v1
-);
 
 // Create Application
 applicationRoute.post("/", protect, authorize("applicationAdmin"), versionMiddleware(1), createApplication.v1);

@@ -1,11 +1,21 @@
-const crypto = require("node:crypto");
+const knex = require("knex")(require("../../../knexfile").development);
+const { getCompany } = require("../../../utils/getCompany");
 
 module.exports = async (req, res, next) => {
-  const { applicationId} = req.params;
+  try {
+    const applicationId = parseInt(req.params.id, 10);
+
+    if (isNaN(applicationId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid application ID",
+      });
+    }
 
   const user = req.user;
 
   const now = new Date(Date.now() + Number(process.env.TIME_OFFSET_MS));
+  console.log(`current time: ${now}`);
 
   let applicationObj = await knex("APPLICATIONS")
     .where({ id: applicationId })
@@ -32,7 +42,7 @@ module.exports = async (req, res, next) => {
   }
 
   if (
-    user.userId !== applicationObj.user_id &&
+    user.studentId !== applicationObj.user_id &&
     user.role !== "applicationAdmin"
   ) {
     return res.status(401).json({
@@ -67,6 +77,8 @@ module.exports = async (req, res, next) => {
   
   const attendanceCheckOpenHour = parseFloat(attendanceCheckOpenHourSetting.value);
   const attendanceCheckCloseHour = parseFloat(attendanceCheckCloseHourSetting.value);
+
+  console.log(`attendanceCheckOpenHour ${attendanceCheckOpenHour}, attendanceCheckCloseHour ${attendanceCheckCloseHour}`);
   
   // Parse activity date and times to construct Date objects
   const activityDate = new Date(activityObj.date);
@@ -83,10 +95,16 @@ module.exports = async (req, res, next) => {
   
   // Calculate attendance check open and close times
   const attendanceCheckOpenTime = new Date(activityStartDateTime);
+  console.log(`attendanceCheckOpenTime ${attendanceCheckOpenTime}`);
+  console.log(`attendanceCheckOpenTime.getHours() - attendanceCheckOpenHour ${attendanceCheckOpenTime.getHours() - attendanceCheckOpenHour}`);
   attendanceCheckOpenTime.setHours(attendanceCheckOpenTime.getHours() - attendanceCheckOpenHour);
   
   const attendanceCheckCloseTime = new Date(activityEndDateTime);
+  console.log(`attendanceCheckCloseTime ${attendanceCheckCloseTime}`);
+  console.log(`attendanceCheckCloseTime.getHours() + attendanceCheckCloseHour ${attendanceCheckCloseTime.getHours() + attendanceCheckCloseHour}`);
   attendanceCheckCloseTime.setHours(attendanceCheckCloseTime.getHours() + attendanceCheckCloseHour);
+
+  console.log(`attendanceCheckOpenTime ${attendanceCheckOpenTime}, attendanceCheckCloseTime ${attendanceCheckCloseTime}`);
   
   // Validate attendance check time window
   if (now < attendanceCheckOpenTime) {
@@ -104,7 +122,7 @@ module.exports = async (req, res, next) => {
   }
 
   if (!applicationObj.is_qr_generated) {
-    const qrString = `/admin/application/check/${applicationId}`;
+    const qrString = `/admin/application/check/${applicationId}?profile=${user.profileImageUrl}`;
     const applicationUpdateObj = {
       updated_at: now,
       is_qr_generated: true,
@@ -118,7 +136,9 @@ module.exports = async (req, res, next) => {
       .returning("*");
   }
 
-  const activitySemesterObj = await knex("SEMESTER")
+  console.log(activityObj.semester_id);
+
+  const activitySemesterObj = await knex("SEMESTERS")
     .where({ id: activityObj.semester_id })
     .select("*")
     .first();
@@ -160,4 +180,11 @@ module.exports = async (req, res, next) => {
     success: true,
     application: applicationRes,
   });
+} catch(error) {
+  console.error(error);
+  return res.status(500).json({
+    success: false,
+    message: "An error occurred.",
+  });
+}
 };

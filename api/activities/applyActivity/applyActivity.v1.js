@@ -30,15 +30,12 @@ module.exports = async (req, res) => {
       .where("date", activityObj.date)
       .select("id");
 
-    let actIdArray = [];
-    for (let actId in Object.values(activityOnTheSameDay)) {
-      actIdArray.push(Object.values(actId));
-    }
+    let actIdArray = activityOnTheSameDay.map(act => act.id);
 
     const userActivityThatDay = await knex("APPLICATIONS")
-      .whereIn("activity_id", actIdArray)
-      .andWhere("user_id", user.studentId)
-      .select("id");
+    .whereIn("activity_id", actIdArray)
+    .andWhere("user_id", user.studentId)
+    .select("id");
 
     if (userActivityThatDay.length != 0) {
       return res.status(409).json({
