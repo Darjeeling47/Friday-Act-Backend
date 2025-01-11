@@ -56,7 +56,7 @@ module.exports = async (req, res) => {
         success: true,
         count: total,
         pagination: pagination,
-        semesters: setting
+        settings : setting
         });
     } catch (error) {
         console.log(error);
